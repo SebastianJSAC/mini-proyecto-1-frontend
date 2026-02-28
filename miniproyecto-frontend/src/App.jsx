@@ -12,7 +12,7 @@ export default function App() {
 
   const obtenerTareas = async () => {
     try {
-      const response = await fetch(`${API_URL}api/tareas/`);
+      const response = await fetch(`${API_URL}/api/tareas/`);
       const data = await response.json();
       setTareas(data);
     } catch (error) {
@@ -27,7 +27,7 @@ export default function App() {
     if (!nombre.trim()) return;
 
     try {
-      const response = await fetch(`${API_URL}api/tareas/`, {
+      const response = await fetch(`${API_URL}/api/tareas/`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
