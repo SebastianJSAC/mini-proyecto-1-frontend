@@ -5,9 +5,10 @@ export default function App() {
   const [nombre, setNombre] = useState("");
   const API_URL = import.meta.env.VITE_API_URL;
 
-  // 🔹 Obtener tareas al cargar
+  // Obtener tareas al cargar
   useEffect(() => {
-    obtenerTareas();
+    // eslint-disable-next-line react-hooks/immutability
+    obtenerTareas().then();
   }, []);
 
   const obtenerTareas = async () => {
@@ -20,7 +21,7 @@ export default function App() {
     }
   };
 
-  // 🔹 Crear nueva tarea
+  // Crear nueva tarea
   const crearTarea = async (e) => {
     e.preventDefault();
 
