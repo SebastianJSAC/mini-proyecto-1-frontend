@@ -11,7 +11,7 @@ export default function VerTareas() {
     const obtenerTareas = useCallback(async () => {
         setCargando(true);
         try {
-            const response = await fetch(`${API_URL}/api/tareas/`);
+            const response = await fetch(`${API_URL}/tareas/api/tareas/`);
             if (!response.ok) {
                 throw new Error("Error de conexión");
             }
@@ -34,7 +34,7 @@ export default function VerTareas() {
         if (!nombre.trim()) return;
 
         try {
-            const response = await fetch(`${API_URL}/api/tareas/`, {
+            const response = await fetch(`${API_URL}/tareas/api/tareas/`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ nombre }),
@@ -53,7 +53,7 @@ export default function VerTareas() {
         if (!confirm("¿Seguro que quieres eliminar esta tarea?")) return;
 
         try {
-            const response = await fetch(`${API_URL}/api/tareas/${id}/`, {
+            const response = await fetch(`${API_URL}/tareas/api/tareas/${id}/`, {
                 method: "DELETE",
             });
             if (response.ok) {
