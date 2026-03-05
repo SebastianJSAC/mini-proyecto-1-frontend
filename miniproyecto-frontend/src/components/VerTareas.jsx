@@ -64,7 +64,6 @@ export default function VerTareas() {
     };
 
     const eliminarTarea = async (id) => {
-        // CONFIRMACIÓN MEJORADA
         const resultado = await Swal.fire({
             title: '¿Estás seguro?',
             text: "Esta acción eliminará la tarea y todas sus subtareas.",
@@ -85,7 +84,16 @@ export default function VerTareas() {
                 if (response.ok) {
                     setTareas((prev) => prev.filter((t) => t.id !== id));
                     await obtenerTareas();
-                    Swal.fire('Eliminado', res.mensaje, 'success');
+                    Swal.fire({
+                        toast: true,
+                        position: 'top-end',
+                        icon: 'success',
+                        title: 'Tarea eliminada',
+                        text: res.mensaje,
+                        showConfirmButton: false,
+                        timer: 2000
+                    });
+                    //await Swal.fire({toast: true, title: 'Eliminado', textt: res.mensaje, icon: 'success'});
                 }
             } catch (error) {
                 console.error("Error al eliminar:", error);
