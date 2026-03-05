@@ -1,22 +1,18 @@
-import React, { useEffect, useState, useCallback, Fragment } from "react";
+import React, { useEffect, useState, useCallback } from "react";
+import { TareaRow } from "./TareaRow.jsx";
+import Swal from 'sweetalert2'; // Importamos SweetAlert
 
 export default function VerTareas() {
     const [tareas, setTareas] = useState([]);
     const [nombre, setNombre] = useState("");
     const [cargando, setCargando] = useState(false);
 
-    // Limpiamos la URL para evitar errores de doble slash //
     const API_URL = import.meta.env.VITE_API_URL?.replace(/\/$/, "");
 
-    //Obtenemos las tareas
     const obtenerTareas = useCallback(async () => {
         setCargando(true);
         try {
             const response = await fetch(`${API_URL}/tareas/api/tareas/`);
-            if (!response.ok) {
-                throw new Error("Error de conexión");
-            }
-
             const data = await response.json();
             setTareas(Array.isArray(data) ? data : []);
         } catch (error) {
@@ -26,14 +22,20 @@ export default function VerTareas() {
         }
     }, [API_URL]);
 
-    useEffect(() => {
-        obtenerTareas();
-    }, [obtenerTareas]);
+    useEffect(() => { obtenerTareas(); }, [obtenerTareas]);
 
-    // Funcion para crear la tarea
     const crearTarea = async (e) => {
         e.preventDefault();
-        if (!nombre.trim()) return;
+
+        // VALIDACIÓN: Si está vacío muestra alerta bonita
+        if (!nombre.trim()) {
+            return Swal.fire({
+                icon: 'warning',
+                title: 'Campo vacío',
+                text: 'Por favor, escribe un nombre para la tarea.',
+                confirmButtonColor: '#3b82f6'
+            });
+        }
 
         try {
             const response = await fetch(`${API_URL}/tareas/api/tareas/`, {
@@ -44,9 +46,17 @@ export default function VerTareas() {
             const res = await response.json();
 
             if (response.ok) {
-                //const nuevaTarea = await response.json();
                 setTareas((prev) => [...prev, res.data]);
                 setNombre("");
+                // Mensaje de éxito desde el backend
+                Swal.fire({
+                    toast: true,
+                    position: 'top-end',
+                    icon: 'success',
+                    title: res.mensaje || 'Tarea creada',
+                    showConfirmButton: false,
+                    timer: 2000
+                });
             }
         } catch (error) {
             console.error("Error al crear:", error);
@@ -54,19 +64,32 @@ export default function VerTareas() {
     };
 
     const eliminarTarea = async (id) => {
-        if (!id) return console.error("ID no definido"); //Evtar error undefined en el backend
-        if (!confirm("¿Seguro que quieres eliminar esta tarea?")) return;
+        // CONFIRMACIÓN MEJORADA
+        const resultado = await Swal.fire({
+            title: '¿Estás seguro?',
+            text: "Esta acción eliminará la tarea y todas sus subtareas.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444',
+            cancelButtonColor: '#64748b',
+            confirmButtonText: 'Sí, eliminar',
+            cancelButtonText: 'Cancelar'
+        });
 
-        try {
-            const response = await fetch(`${API_URL}/tareas/api/tareas/${id}/`, {
-                method: "DELETE",
-            });
-            if (response.ok) {
-                setTareas((prev) => prev.filter((t) => t.id !== id));
-                await obtenerTareas()
+        if (resultado.isConfirmed) {
+            try {
+                const response = await fetch(`${API_URL}/tareas/api/tareas/${id}/`, {
+                    method: "DELETE",
+                });
+                const res = await response.json();
+                if (response.ok) {
+                    setTareas((prev) => prev.filter((t) => t.id !== id));
+                    await obtenerTareas();
+                    Swal.fire('Eliminado', res.mensaje, 'success');
+                }
+            } catch (error) {
+                console.error("Error al eliminar:", error);
             }
-        } catch (error) {
-            console.error("Error al eliminar:", error);
         }
     };
 
@@ -106,41 +129,15 @@ export default function VerTareas() {
                         {cargando ? (
                             <tr><td colSpan="3" className="p-8 text-center text-slate-400">Cargando tareas...</td></tr>
                         ) : tareas.length > 0 ? (
-                            tareas.map((tarea) => (
-                                <Fragment key={tarea.id}>
-                                    {/* FILA PADRE */}
-                                    <tr className="hover:bg-slate-50 transition-colors group">
-                                        <td className="p-4 text-slate-500 font-mono text-sm">#{tarea.id}</td>
-                                        <td className="p-4 text-slate-700 font-medium">{tarea.nombre}</td>
-                                        <td className="p-4 text-center">
-                                            <button
-                                                onClick={() => eliminarTarea(tarea.id)}
-                                                className="text-red-500 hover:text-red-700 hover:bg-red-50 p-2 rounded-md transition-all font-medium text-sm cursor-pointer"
-                                            >
-                                                Eliminar
-                                            </button>
-                                        </td>
-                                    </tr>
-
-                                    {/* SUBTAREAS (Si existen en el JSON) */}
-                                    {tarea.subtareas && tarea.subtareas.map((sub) => (
-                                        <tr key={`sub-${sub.id}`} className="bg-slate-50/50 border-l-4 border-l-blue-400">
-                                            <td className="p-3 text-slate-400 font-mono text-xs pl-8">#{sub.id}</td>
-                                            <td className="p-3 text-slate-600 italic text-sm pl-4">
-                                                <span className="text-blue-400 mr-2">↳</span>
-                                                {sub.nombre}
-                                            </td>
-                                            <td className="p-3 text-center">
-                                                <button
-                                                    onClick={() => eliminarTarea(sub.id)}
-                                                    className="text-red-400 hover:text-red-600 p-1 rounded-md text-xs"
-                                                >
-                                                    Eliminar
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </Fragment>
+                            // Filtramos para mostrar solo tareas PADRE en el primer nivel
+                            tareas.filter(t => t.parent === null).map((tarea) => (
+                                <TareaRow
+                                    key={tarea.id}
+                                    tarea={tarea}
+                                    onEliminar={eliminarTarea}
+                                    onActualizar={obtenerTareas}
+                                    API_URL={API_URL}
+                                />
                             ))
                         ) : (
                             <tr><td colSpan="3" className="p-8 text-center text-slate-400 italic">No hay tareas pendientes.</td></tr>
