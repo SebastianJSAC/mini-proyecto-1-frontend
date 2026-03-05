@@ -135,7 +135,7 @@ export default function VerTareas() {
                                     key={tarea.id}
                                     tarea={tarea}
                                     onEliminar={eliminarTarea}
-                                    onActualizar={obtenerTareas}
+                                    setTareas={setTareas}
                                     API_URL={API_URL}
                                 />
                             ))
