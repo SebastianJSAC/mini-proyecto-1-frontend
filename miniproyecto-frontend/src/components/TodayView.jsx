@@ -21,8 +21,6 @@ export function TodayView() {
             const response = await fetch(`${API_URL}/tareas/api/tareas/`);
             const data = await response.json();
 
-            const taskBd = length.data;
-
             console.log("Tareas recibidas desde la API:", data);
 
             if (Array.isArray(data)) {
@@ -32,6 +30,8 @@ export function TodayView() {
             console.error("Error cargando tareas:", error);
         }
     };
+
+    const taskBd = length.data;
 
     useEffect(() => {
         obtenerTareas();
