@@ -50,13 +50,7 @@ export default function TaskCard({ tarea, tasks, setTasks, API_URL }) {
             }
 
         } catch (error) {
-
-            Swal.fire({
-                icon: "error",
-                title: "Error",
-                text: "No se pudo actualizar la subtarea"
-            });
-
+            console.error(error);
         }
 
     };
@@ -127,7 +121,16 @@ export default function TaskCard({ tarea, tasks, setTasks, API_URL }) {
 
             if (response.ok) {
 
-                setTasks(prev => [...prev, res.data]);
+                setTasks(prev =>
+                    prev.map(t =>
+                        t.id === tarea.id
+                            ? {
+                                ...t,
+                                subtareas: [...(t.subtareas || []), res.data]
+                            }
+                            : t
+                    )
+                );
 
                 setSubtaskInput("");
 
