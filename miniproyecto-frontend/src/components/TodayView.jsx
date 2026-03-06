@@ -1,5 +1,6 @@
 import { Play, Pause, RotateCcw, Sparkles, CalendarDays, Brain } from "lucide-react";
 import { useState, useEffect } from "react";
+import VerTareas from "./VerTareas";
 
 export function TodayView() {
     const API_URL = import.meta.env.VITE_API_URL?.replace(/\/$/, "");
@@ -176,25 +177,8 @@ export function TodayView() {
             </div>
             </div>
 
-            {tasks.map((task, index) => (
-            <div
-                key={task.id}
-                className={`p-8 rounded-2xl border ${
-                task.status === "active"
-                    ? "bg-white border-emerald-200"
-                    : "bg-gray-50 border-gray-200 opacity-60"
-                }`}
-            >
-                <h3 className="text-lg font-medium">{task.name}</h3>
+            <VerTareas />
 
-                {task.status === "active" && (
-                <button className="mt-4 px-6 py-3 bg-emerald-600 text-white rounded-xl flex items-center gap-2">
-                    <Play className="w-5 h-5" />
-                    Iniciar Cronómetro
-                </button>
-                )}
-            </div>
-            ))}
         </div>
 
         {/* Timer */}
