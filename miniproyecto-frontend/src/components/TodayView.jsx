@@ -186,6 +186,37 @@ export function TodayView() {
                     </div>
                 </div>
 
+                {tasks.length > 0 && (
+                    <div className="bg-white border border-emerald-200 rounded-xl p-6 mt-6">
+
+                        <div className="flex justify-between items-center mb-3">
+                            <span className="text-sm bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full">
+                                Tarea actual
+                            </span>
+
+                            <span className="bg-emerald-100 text-emerald-700 w-7 h-7 flex items-center justify-center rounded-full text-sm">
+                                1
+                            </span>
+                        </div>
+
+                        <h3 className="text-lg font-medium text-gray-900">
+                            {tasks[0].nombre}
+                        </h3>
+
+                        <p className="text-sm text-gray-500 mt-2">
+                            Tiempo estimado: <b>45 min</b>
+                        </p>
+
+                        <button
+                            onClick={() => setTimerRunning(true)}
+                            className="mt-4 px-6 py-3 bg-emerald-600 text-white rounded-lg"
+                        >
+                            Iniciar Cronómetro
+                        </button>
+
+                    </div>
+                )}
+
                 <div className="space-y-3 mt-6">
 
                     {tasks.length === 0 && (
