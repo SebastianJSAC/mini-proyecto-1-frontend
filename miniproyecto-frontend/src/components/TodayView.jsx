@@ -71,10 +71,19 @@ setTimeout(() => {
 };
 
 const handleAddTask = () => {
-if (!quickTaskInput.trim()) return;
+  if (!quickTaskInput.trim()) return;
 
+  const newTask = {
+    id: Date.now(),
+    name: quickTaskInput,
+    status: "waiting"
+  };
 
+  setQueueTasks(prev => [...prev, newTask]);
+  setQuickTaskInput("");
 };
+
+
 
 return ( <main className="flex-1 overflow-auto"> <div className="max-w-7xl mx-auto px-8 py-8"> <div className="mb-8"> <h1 className="text-3xl font-light text-gray-900 mb-2">
 Hola, {userName}. <span className="font-medium">Tienes 3 misiones hoy.</span> </h1> <p className="text-base text-gray-500">Viernes, 6 de marzo de 2026</p> </div>
