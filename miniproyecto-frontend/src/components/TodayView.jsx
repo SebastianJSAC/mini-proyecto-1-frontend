@@ -201,19 +201,9 @@ export function TodayView() {
 
                         <h3 className="text-lg font-medium text-gray-900">
                             {tasks[0].nombre}
+                            console.console.log(tasks);
+                            
                         </h3>
-
-                        <p className="text-sm text-gray-500 mt-2">
-                            Tiempo estimado: <b>45 min</b>
-                        </p>
-
-                        <button
-                            onClick={() => setTimerRunning(true)}
-                            className="mt-4 px-6 py-3 bg-emerald-600 text-white rounded-lg"
-                        >
-                            Iniciar Cronómetro
-                        </button>
-
                     </div>
                 )}
 
