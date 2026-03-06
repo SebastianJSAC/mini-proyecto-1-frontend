@@ -21,6 +21,8 @@ export function TodayView() {
             const response = await fetch(`${API_URL}/tareas/api/tareas/`);
             const data = await response.json();
 
+            console.log("Tareas recibidas desde la API:", data);
+
             if (Array.isArray(data)) {
                 setTasks(data);
             }
@@ -200,10 +202,9 @@ export function TodayView() {
                         </div>
 
                         <h3 className="text-lg font-medium text-gray-900">
-                            {tasks[0].nombre}
-                            console.console.log(tasks);
-                            
+                            {tasks[0].nombre}                            
                         </h3>
+                        
                     </div>
                 )}
 
