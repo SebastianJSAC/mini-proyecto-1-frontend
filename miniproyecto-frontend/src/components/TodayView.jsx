@@ -31,8 +31,6 @@ export function TodayView() {
         }
     };
 
-    const taskBd = length.data;
-
     useEffect(() => {
         obtenerTareas();
     }, []);
@@ -120,7 +118,7 @@ export function TodayView() {
     };
 
     return (<main className="flex-1 overflow-auto"> <div className="max-w-7xl mx-auto px-8 py-8"> <div className="mb-8"> <h1 className="text-3xl font-light text-gray-900 mb-2">
-        Hola, {userName}. <span className="font-medium">Tienes {taskBd} misiones hoy.</span> </h1> <p className="text-base text-gray-500">Viernes, 6 de marzo de 2026</p> </div>
+        Hola, {userName}. <span className="font-medium">Tienes _ misiones hoy.</span> </h1> <p className="text-base text-gray-500">Viernes, 6 de marzo de 2026</p> </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
 
