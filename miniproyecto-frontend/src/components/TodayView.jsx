@@ -1,6 +1,6 @@
 import { Play, Pause, RotateCcw, Sparkles, CalendarDays, Brain } from "lucide-react";
 import { useState, useEffect } from "react";
-import VerTareas from "./VerTareas";
+import TaskRow from "./TaskRow";
 
 export function TodayView() {
     const API_URL = import.meta.env.VITE_API_URL?.replace(/\/$/, "");
@@ -50,7 +50,7 @@ export function TodayView() {
             const res = await response.json();
 
             if (response.ok) {
-                setTasks((prev) => [...prev, res.data]);
+                await obtenerTareas();
 
                 setQuickTaskInput("");
                 setSelectedDueDate("");
@@ -187,23 +187,26 @@ export function TodayView() {
                 </div>
 
                 <div className="space-y-3 mt-6">
-                    {tasks.map((task) => (
-                        <div
-                            key={task.id}
-                            className="bg-white border border-gray-200 rounded-xl p-4 flex justify-between items-center"
-                        >
-                            <span className="text-gray-800">{task.nombre}</span>
 
-                            <button
-                                onClick={() =>
-                                    setTasks(tasks.filter((t) => t.id !== task.id))
-                                }
-                                className="text-red-500 text-sm"
-                            >
-                                Eliminar
-                            </button>
-                        </div>
-                    ))}
+                    {tasks.length === 0 && (
+                        <p className="text-gray-400 text-sm">
+                            No hay tareas todavía.
+                        </p>
+                    )}
+
+                    {tasks
+                        .filter((t) => t.parent === null)
+                        .map((tarea) => (
+
+                            <TaskRow
+                                key={tarea.id}
+                                tarea={tarea}
+                                setTasks={setTasks}
+                                API_URL={API_URL}
+                            />
+
+                        ))}
+
                 </div>
 
             </div>
