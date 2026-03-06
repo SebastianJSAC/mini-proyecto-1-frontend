@@ -1,5 +1,6 @@
 import { useState } from "react";
 import Swal from "sweetalert2";
+import { Trash2 } from "lucide-react";
 
 export default function TaskCard({ tarea, tasks, setTasks, API_URL }) {
 
@@ -9,6 +10,55 @@ export default function TaskCard({ tarea, tasks, setTasks, API_URL }) {
     const subtasks = tarea.subtareas || [];
 
     const completadas = subtasks.filter(s => s.completada).length;
+
+    const handleDeleteTask = async () => {
+
+        const confirm = await Swal.fire({
+            title: "¿Eliminar tarea?",
+            text: "Esta acción eliminará la tarea y sus subtareas.",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonText: "Eliminar",
+            cancelButtonText: "Cancelar",
+            confirmButtonColor: "#ef4444"
+        });
+
+        if (!confirm.isConfirmed) return;
+
+        try {
+
+            const response = await fetch(`${API_URL}/tareas/api/tareas/${tarea.id}/`, {
+                method: "DELETE"
+            });
+
+            if (response.ok) {
+
+                setTasks(prev =>
+                    prev.filter(t => t.id !== tarea.id && t.parent !== tarea.id)
+                );
+
+                Swal.fire({
+                    toast: true,
+                    position: "top-end",
+                    icon: "success",
+                    title: "Tarea eliminada",
+                    showConfirmButton: false,
+                    timer: 1500
+                });
+
+            }
+
+        } catch (error) {
+
+            Swal.fire({
+                icon: "error",
+                title: "Error",
+                text: "No se pudo eliminar la tarea"
+            });
+
+        }
+
+    };
 
     const toggleSubtask = async (sub) => {
 
@@ -172,17 +222,21 @@ export default function TaskCard({ tarea, tasks, setTasks, API_URL }) {
                     className="w-5 h-5"
                 />
 
-                <h3 className={`flex-1 text-lg font-medium ${tarea.completada ? "line-through text-gray-400" : "text-gray-900"}`}>
+                <h3 className={`flex-1 text-lg font-medium ${tarea.completada ? "line-through text-gray-400" : "text-gray-900"
+                    }`}>
                     {tarea.nombre}
                 </h3>
 
-                <span className="text-xs text-gray-400">
-                    {completadas}/{subtasks.length}
-                </span>
+                <button
+                    onClick={handleDeleteTask}
+                    className="text-red-500 hover:text-red-700"
+                >
+                    <Trash2 size={18} />
+                </button>
 
                 <button
                     onClick={() => setOpen(!open)}
-                    className="text-sm text-gray-400 hover:text-gray-700"
+                    className="text-sm text-gray-400"
                 >
                     {open ? "Ocultar" : "Ver"}
                 </button>
