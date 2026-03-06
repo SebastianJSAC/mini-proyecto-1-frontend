@@ -1,6 +1,6 @@
 import { Play, Pause, RotateCcw, Sparkles, CalendarDays, Brain } from "lucide-react";
 import { useState, useEffect } from "react";
-import TaskRow from "./TaskRow.jsx";
+import TaskCard from "./TaskCard.jsx";
 
 export function TodayView() {
     const API_URL = import.meta.env.VITE_API_URL?.replace(/\/$/, "");
@@ -202,9 +202,9 @@ export function TodayView() {
                         </div>
 
                         <h3 className="text-lg font-medium text-gray-900">
-                            {tasks[0].nombre}                            
+                            {tasks[0].nombre}
                         </h3>
-                        
+
                     </div>
                 )}
 
@@ -220,9 +220,10 @@ export function TodayView() {
                         .filter((t) => t.parent === null)
                         .map((tarea) => (
 
-                            <TaskRow
+                            <TaskCard
                                 key={tarea.id}
                                 tarea={tarea}
+                                tasks={tasks}
                                 setTasks={setTasks}
                                 API_URL={API_URL}
                             />
