@@ -11,52 +11,59 @@ export default function TaskCard({ tarea, tasks, setTasks, API_URL }) {
 
     const completadas = subtasks.filter(s => s.completada).length;
 
-    const handleDeleteTask = async () => {
+    const handleDeleteTask = () => {
 
-        const confirm = await Swal.fire({
-            title: "¿Eliminar tarea?",
-            text: "Esta acción eliminará la tarea y sus subtareas.",
+        const deletedTask = tarea;
+
+        // quitar de la UI inmediatamente
+        setTasks(prev => prev.filter(t => t.id !== tarea.id));
+
+        let undo = false;
+
+        Swal.fire({
+            toast: true,
+            position: "bottom-end",
             icon: "warning",
-            showCancelButton: true,
-            confirmButtonText: "Eliminar",
-            cancelButtonText: "Cancelar",
-            confirmButtonColor: "#ef4444"
-        });
+            title: "Tarea eliminada",
+            showConfirmButton: true,
+            confirmButtonText: "Deshacer",
+            timer: 4000,
+            timerProgressBar: true
+        }).then(async (result) => {
 
-        if (!confirm.isConfirmed) return;
+            if (result.isConfirmed) {
 
-        try {
+                undo = true;
 
-            const response = await fetch(`${API_URL}/tareas/api/tareas/${tarea.id}/`, {
-                method: "DELETE"
-            });
-
-            if (response.ok) {
-
-                setTasks(prev =>
-                    prev.filter(t => t.id !== tarea.id && t.parent !== tarea.id)
-                );
-
-                Swal.fire({
-                    toast: true,
-                    position: "top-end",
-                    icon: "success",
-                    title: "Tarea eliminada",
-                    showConfirmButton: false,
-                    timer: 1500
-                });
+                // restaurar en UI
+                setTasks(prev => [...prev, deletedTask]);
 
             }
 
-        } catch (error) {
+            if (!undo) {
 
-            Swal.fire({
-                icon: "error",
-                title: "Error",
-                text: "No se pudo eliminar la tarea"
-            });
+                try {
 
-        }
+                    await fetch(`${API_URL}/tareas/api/tareas/${tarea.id}/`, {
+                        method: "DELETE"
+                    });
+
+                } catch (error) {
+
+                    Swal.fire({
+                        icon: "error",
+                        title: "Error",
+                        text: "No se pudo eliminar la tarea"
+                    });
+
+                    // restaurar si falla backend
+                    setTasks(prev => [...prev, deletedTask]);
+
+                }
+
+            }
+
+        });
 
     };
 
