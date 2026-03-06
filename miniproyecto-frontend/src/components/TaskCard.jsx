@@ -10,6 +10,57 @@ export default function TaskCard({ tarea, tasks, setTasks, API_URL }) {
 
     const completadas = subtasks.filter(s => s.completada).length;
 
+    const toggleSubtask = async (sub) => {
+
+        try {
+
+            const response = await fetch(`${API_URL}/tareas/api/tareas/${sub.id}/`, {
+                method: "PATCH",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    completada: !sub.completada
+                })
+            });
+
+            if (response.ok) {
+
+                setTasks(prev =>
+                    prev.map(t => {
+
+                        if (t.id === tarea.id) {
+
+                            return {
+                                ...t,
+                                subtareas: t.subtareas.map(s =>
+                                    s.id === sub.id
+                                        ? { ...s, completada: !s.completada }
+                                        : s
+                                )
+                            };
+
+                        }
+
+                        return t;
+
+                    })
+                );
+
+            }
+
+        } catch (error) {
+
+            Swal.fire({
+                icon: "error",
+                title: "Error",
+                text: "No se pudo actualizar la subtarea"
+            });
+
+        }
+
+    };
+
     const toggleComplete = async () => {
 
         try {
@@ -150,9 +201,9 @@ export default function TaskCard({ tarea, tasks, setTasks, API_URL }) {
 
                             <input
                                 type="checkbox"
-                                checked={sub.completada}
-                                className="w-4 h-4"
-                                readOnly
+                                checked={sub.completada || false}
+                                onChange={() => toggleSubtask(sub)}
+                                className="w-4 h-4 cursor-pointer"
                             />
 
                             <span className={`${sub.completada ? "line-through text-gray-400" : "text-gray-700"}`}>
