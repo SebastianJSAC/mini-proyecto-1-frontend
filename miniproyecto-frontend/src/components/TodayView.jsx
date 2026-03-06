@@ -217,7 +217,7 @@ export function TodayView() {
                     )}
 
                     {tasks
-                        .filter((t) => t.parent === null)
+                        .filter((t) => !t.parent && !t.parent_id)
                         .map((tarea) => (
 
                             <TaskCard

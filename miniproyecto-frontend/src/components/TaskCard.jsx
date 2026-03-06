@@ -6,7 +6,9 @@ export default function TaskCard({ tarea, tasks, setTasks, API_URL }) {
     const [subtaskInput, setSubtaskInput] = useState("");
     const [open, setOpen] = useState(true);
 
-    const subtasks = tasks.filter(t => t.parent === tarea.id);
+    const subtasks = tasks.filter(
+        (t) => t.parent === tarea.id || t.parent_id === tarea.id
+    );
 
     const toggleComplete = () => {
 
