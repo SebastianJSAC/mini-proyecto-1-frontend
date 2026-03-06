@@ -52,11 +52,13 @@ export function TodayView() {
             const res = await response.json();
 
             if (response.ok) {
-                await obtenerTareas();
+
+                setTasks(prev => [...prev, res.data]);
 
                 setQuickTaskInput("");
                 setSelectedDueDate("");
                 setSelectedMentalLoad(undefined);
+
             }
         } catch (error) {
             console.error("Error creando tarea:", error);
