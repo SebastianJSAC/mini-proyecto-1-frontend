@@ -1,6 +1,6 @@
 import { Play, Pause, RotateCcw, Sparkles, CalendarDays, Brain } from "lucide-react";
 import { useState, useEffect } from "react";
-import TaskRow from "./TaskRow";
+import TaskRow from "./TaskRow.jsx";
 
 export function TodayView() {
     const API_URL = import.meta.env.VITE_API_URL?.replace(/\/$/, "");
