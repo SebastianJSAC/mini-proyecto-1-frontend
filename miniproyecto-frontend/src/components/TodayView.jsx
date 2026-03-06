@@ -13,6 +13,8 @@ export function TodayView() {
     const [isBreakingDown, setIsBreakingDown] = useState(false);
     const [queueTasks, setQueueTasks] = useState([]);
 
+    const [tasks, setTasks] = useState([]);
+
     const handleAddTask = async () => {
 
     if (!quickTaskInput.trim()) return;
