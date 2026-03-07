@@ -10,7 +10,6 @@ export default function TaskCard({ tarea, setTasks, API_URL }) {
     const [editCarga, setEditCarga] = useState(tarea.carga_mental || "");
     const [editFechaEntrega, setEditFechaEntrega] = useState(tarea.fecha_entrega ? tarea.fecha_entrega.slice(0, 16) : "");
 
-    // --- TUS ESTADOS ORIGINALES ---
     const [subtaskInput, setSubtaskInput] = useState("");
     const [open, setOpen] = useState(true);
 
@@ -63,7 +62,7 @@ export default function TaskCard({ tarea, setTasks, API_URL }) {
             }
         } catch (error) {
             console.error("Error al editar:", error);
-            Swal.fire({ icon: "error", title: "Error", text: "No se pudo actualizar" });
+            await Swal.fire({ icon: "error", title: "Error", text: "No se pudo actualizar" });
         }
     };
 
@@ -221,6 +220,16 @@ export default function TaskCard({ tarea, setTasks, API_URL }) {
             if (response.ok) {
                 setTasks(prev => prev.map(t => t.id === tarea.id ? { ...t, subtareas: [...(t.subtareas || []), res.data] } : t));
                 setSubtaskInput("");
+
+                await Swal.fire({
+                    toast: true,
+                    position: "top-end",
+                    showConfirmButton: false,
+                    icon: "success",
+                    title: "Sub-Tarea agreagda",
+                    timer: 4000,
+                    timerProgressBar: true
+                });
             }
         } catch (error) { console.error(error); }
     };

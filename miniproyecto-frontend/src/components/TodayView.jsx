@@ -1,6 +1,7 @@
 import { Play, Pause, RotateCcw, Sparkles, CalendarDays, Brain } from "lucide-react";
 import { useState, useEffect } from "react";
 import TaskCard from "./TaskCard.jsx";
+import Swal from "sweetalert2";
 
 export function TodayView() {
     const API_URL = import.meta.env.VITE_API_URL?.replace(/\/$/, "");
@@ -64,6 +65,15 @@ export function TodayView() {
                 setSelectedDueDate("");
                 setSelectedMentalLoad(undefined);
 
+                await Swal.fire({
+                    toast: true,
+                    position: "top-end",
+                    showConfirmButton: false,
+                    icon: "success",
+                    title: "Tarea agreagda",
+                    timer: 4000,
+                    timerProgressBar: true
+                });
             }
         } catch (error) {
             console.error("Error creando tarea:", error);
