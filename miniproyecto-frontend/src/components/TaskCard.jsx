@@ -250,7 +250,7 @@ export default function TaskCard({ tarea, tasks, setTasks, API_URL }) {
             <div className="flex items-center gap-3">
 
                 <button
-                    onClick={toggleCompletada}
+                    onClick={toggleComplete}
                     className={`px-3 py-1 rounded-md text-xs font-bold transition-all ${tarea.completada
                         ? "bg-green-100 text-green-700"
                         : "bg-slate-100 text-slate-600"
@@ -294,7 +294,7 @@ export default function TaskCard({ tarea, tasks, setTasks, API_URL }) {
                         >
 
                             <button
-                                onClick={toggleCompletada}
+                                onClick={toggleComplete}
                                 className={`px-3 py-1 rounded-md text-xs font-bold transition-all ${tarea.completada
                                         ? "bg-green-100 text-green-700"
                                         : "bg-slate-100 text-slate-600"
