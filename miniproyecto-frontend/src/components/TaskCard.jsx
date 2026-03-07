@@ -86,7 +86,7 @@ export default function TaskCard({tarea, setTasks, API_URL, navigate}) {
                 ));
 
                 setIsEditing(false);
-                Swal.fire({toast: true, position: "top-end", icon: "success", title: "Todo actualizado", showConfirmButton: false, timer: 1500});
+                Swal.fire({toast: true, position: "top-end", icon: "success", title: "Tarea actualizada", showConfirmButton: false, timer: 1500});
                 setTimeout(() => navigate("/hoy"), 1000);
             }
         } catch (error) {
