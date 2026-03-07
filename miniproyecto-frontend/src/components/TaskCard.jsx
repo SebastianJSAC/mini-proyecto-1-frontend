@@ -164,7 +164,7 @@ export default function TaskCard({ tarea, tasks, setTasks, API_URL }) {
             });
 
             if (response.ok) {
-                setTareas(prev =>
+                setTasks(prev =>
                     actualizarRecursivo(prev, tarea.id, t => ({
                         ...t,
                         completada: !t.completada
