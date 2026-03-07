@@ -66,7 +66,7 @@ export default function TaskCard({ tarea, setTasks, API_URL, navigate }) {
                 setTimeout(() => navigate("/hoy"), 1500);
             }
         } catch (error) {
-            console.error("Error al editar:", error);
+            console.error("Error al editar la tarea:", error);
             await Swal.fire({ icon: "error", title: "Error", text: "No se pudo actualizar" });
         }
     };
@@ -106,7 +106,7 @@ export default function TaskCard({ tarea, setTasks, API_URL, navigate }) {
                 icon: "info",
                 title: "Tarea eliminada",
                 showConfirmButton: true,
-                confirmButtonText: "Restaurar",
+                confirmButtonText: "Restaurar tarea",
                 timer: 4000,
                 timerProgressBar: true
             });
@@ -172,6 +172,25 @@ export default function TaskCard({ tarea, setTasks, API_URL, navigate }) {
                 body: JSON.stringify({ completada: nuevoEstadoSubtarea })
             });
             if (response.ok) {
+                setTasks(prevTasks => prevTasks.map(t => {
+                    if (t.id === tarea.id) {
+                        // 1. Actualizamos la lista de subtareas
+                        const nuevasSubtareas = (t.subtareas || []).map(s =>
+                            s.id === sub.id ? { ...s, completada: nuevoEstadoSubtarea } : s
+                        );
+
+                        // 2. Opcional: Si quieres que el padre se complete solo si todas están listas
+                        const todasCompletadas = nuevasSubtareas.length > 0 && nuevasSubtareas.every(s => s.completada);
+
+                        return {
+                            ...t,
+                            subtareas: nuevasSubtareas,
+                            completada: todasCompletadas
+                        };
+                    }
+                    return t;
+                }));
+
                 setTasks(prev => prev.map(t => {
                     if (t.id === tarea.id) {
                         const nuevasSubtareas = t.subtareas.map(s =>
@@ -192,8 +211,8 @@ export default function TaskCard({ tarea, setTasks, API_URL, navigate }) {
         const nuevoEstadoPadre = !tarea.completada;
 
         const confirm = await Swal.fire({
-            title: nuevoEstadoPadre ? "¿Marcar misión como completada?" : "¿Reabrir misión?",
-            text: nuevoEstadoPadre ? "Esto completará también todas las subtareas." : "Se reabrirá la tarea principal.",
+            title: nuevoEstadoPadre ? "¿Marcar tarea como completada?" : "¿Reabrir tarea?",
+            text: nuevoEstadoPadre ? "Esto completará también todas las subtareas." : "Se reabrirá la tarea principal y todas sus Sub-Tareas.",
             icon: "question",
             showCancelButton: true,
             confirmButtonColor: "#10b981",
@@ -258,7 +277,7 @@ export default function TaskCard({ tarea, setTasks, API_URL, navigate }) {
                     position: "top-end",
                     showConfirmButton: false,
                     icon: "success",
-                    title: "Sub-Tarea agreagda",
+                    title: "Sub-Tarea agregada",
                     timer: 4000,
                     timerProgressBar: true
                 });

@@ -54,7 +54,7 @@ export function TodayView() {
                 },
                 body: JSON.stringify({
                     nombre: quickTaskInput,
-                    descripcion: descripcionInput || "Descripcion vacia",
+                    descripcion: descripcionInput || "Descripcion de la tarea vacia",
                     fecha_entrega: fechaISO,
                     carga_mental: selectedMentalLoad || null
                 }),
@@ -76,7 +76,7 @@ export function TodayView() {
                     position: "top-end",
                     showConfirmButton: false,
                     icon: "success",
-                    title: "Tarea agreagda",
+                    title: "Tarea agregada",
                     timer: 4000,
                     timerProgressBar: true
                 });
@@ -136,11 +136,20 @@ export function TodayView() {
 
     const tareaMasCercana = tareasPendientesOrdenadas[0];
 
+    const subts = tareaMasCercana?.subtareas || [];
+
+    const completadas = subts.filter(st => st.completada).length;
+    const totalSubtareas = subts.length;
+
+    const progresoSubtareas = totalSubtareas > 0
+        ? Math.round((completadas / totalSubtareas) * 100)
+        : 0;
+
     return (<main className="flex-1 overflow-auto">
         <div className="max-w-7xl mx-auto px-8 py-8">
             <div className="mb-8"><h1 className="text-3xl font-light text-gray-900 mb-2">
                 Hola, {userName}. <span
-                    className="font-medium">Tienes {totalMisiones} {totalMisiones === 1 ? "misión" : "misiones"} el dia de hoy.</span>
+                    className="font-medium">Tienes {totalMisiones} {totalMisiones === 1 ? "tarea" : "tareas"} actualmente.</span>
             </h1> <p className="text-base text-gray-500">{hoy}</p></div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -163,7 +172,7 @@ export function TodayView() {
                                             handleAddTask();
                                         }
                                     }}
-                                    placeholder="¿Qué tienes pendiente?"
+                                    placeholder="¿Qué tarea tienes para agregar?"
                                     className="w-full px-5 py-4 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
                                 />
 
@@ -218,11 +227,11 @@ export function TodayView() {
                                         selectedMentalLoad === undefined
                                     }
                                     className={`ml-auto px-6 py-2.5 rounded-lg transition-colors ${(!quickTaskInput.trim() || !descripcionInput.trim() || !selectedDueDate || selectedMentalLoad === undefined)
-                                            ? "bg-gray-300 cursor-not-allowed text-gray-500" // Estilo deshabilitado
-                                            : "bg-emerald-600 text-white hover:bg-emerald-700" // Estilo activo
+                                        ? "bg-gray-300 cursor-not-allowed text-gray-500" // Estilo deshabilitado
+                                        : "bg-emerald-600 text-white hover:bg-emerald-700" // Estilo activo
                                         }`}
                                 >
-                                    Crear Actividad
+                                    Crear Tarea
                                 </button>
 
                             </div>
@@ -230,27 +239,76 @@ export function TodayView() {
                     </div>
 
                     {tareaMasCercana && (
-                        <div className="bg-white border border-emerald-200 rounded-xl p-6 mt-6 shadow-sm">
-                            <div className="flex justify-between items-center mb-3">
-                                <span className="text-sm bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full font-medium">
-                                    Próximo vencimiento
-                                </span>
+                        <div className="relative overflow-hidden bg-white border-2 border-emerald-100 rounded-2xl p-6 mt-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] ring-1 ring-emerald-500/10">
 
-                                <span className="bg-emerald-500 text-white w-7 h-7 flex items-center justify-center rounded-full text-xs animate-pulse">
-                                    !
-                                </span>
+                            {/* Decoración de fondo para resaltar */}
+                            <div className="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-emerald-50 rounded-full blur-3xl opacity-50" />
+
+                            <div className="relative">
+                                <div className="flex justify-between items-center mb-4">
+                                    <div className="flex items-center gap-2">
+                                        <span className="flex h-2 w-2 rounded-full bg-emerald-500 animate-ping" />
+                                        <span className="text-xs font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full">
+                                            Prioridad Inmediata
+                                        </span>
+                                    </div>
+
+                                    <div className="flex items-center gap-1.5 text-xs font-medium text-emerald-600 bg-emerald-50 px-2 py-1 rounded-lg">
+                                        <span>Próximo cierre</span>
+                                    </div>
+                                </div>
+
+                                <h3 className="text-xl font-semibold text-gray-900 mb-2 decoration-emerald-500/30 decoration-2">
+                                    {tareaMasCercana.nombre}
+                                </h3>
+
+                                <div className="flex flex-wrap items-center gap-y-2 gap-x-4">
+                                    <div className="flex items-center gap-1.5 text-sm text-gray-500">
+                                        <p>Entrega: </p>
+                                        <CalendarDays className="w-4 h-4 text-emerald-500" />
+                                        <span className="font-medium text-gray-700">
+                                            {tareaMasCercana.fecha_entrega
+                                                ? new Date(tareaMasCercana.fecha_entrega).toLocaleString([], {
+                                                    day: '2-digit',
+                                                    month: 'short',
+                                                    hour: '2-digit',
+                                                    minute: '2-digit'
+                                                })
+                                                : "Sin fecha de entrega"}
+                                        </span>
+                                    </div>
+
+                                    {tareaMasCercana.carga_mental && (
+                                        <div className="flex items-center gap-1 text-sm text-amber-600">
+                                            <Brain className="w-4 h-4" />
+                                            <span className="text-xs font-medium">Dificultad: Nivel {tareaMasCercana.carga_mental}</span>
+                                        </div>
+                                    )}
+                                </div>
+
+                                <div className="mt-6">
+                                    <div className="flex justify-between items-center mb-2">
+                                        <span className="text-xs font-semibold text-emerald-700">
+                                            Progreso de la tarea
+                                        </span>
+                                        <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded">
+                                            {progresoSubtareas}%
+                                        </span>
+                                    </div>
+
+                                    {/* Contenedor de la barra */}
+                                    <div className="w-full bg-gray-100 h-2.5 rounded-full overflow-hidden border border-gray-50">
+                                        <div
+                                            className="bg-emerald-500 h-full rounded-full transition-all duration-700 ease-out shadow-[0_0_12px_rgba(16,185,129,0.3)]"
+                                            style={{ width: `${progresoSubtareas}%` }}
+                                        />
+                                    </div>
+
+                                    <p className="text-[10px] text-gray-400 mt-2 text-right italic">
+                                        {completadas} de {totalSubtareas} subtareas finalizadas
+                                    </p>
+                                </div>
                             </div>
-
-                            <h3 className="text-lg font-semibold text-gray-900 mb-1">
-                                {tareaMasCercana.nombre}
-                            </h3>
-
-                            <p className="text-sm text-gray-500 flex items-center gap-1">
-                                <CalendarDays className="w-4 h-4" />
-                                Vence: {tareaMasCercana.fecha_entrega
-                                    ? new Date(tareaMasCercana.fecha_entrega).toLocaleString()
-                                    : "Sin fecha definida"}
-                            </p>
                         </div>
                     )}
 
