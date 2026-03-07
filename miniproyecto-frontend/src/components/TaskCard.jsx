@@ -327,17 +327,16 @@ export default function TaskCard({ tarea, setTasks, API_URL }) {
 
                 <div className="flex gap-4 text-xs text-gray-400 mt-2">
 
-                    {tarea.fecha_entrega && (
-                        <span>
-                            {new Date(tarea.fecha_entrega).toLocaleDateString()}
-                        </span>
-                    )}
-
-                    {tarea.carga_mental && (
-                        <span>
-                            Carga {tarea.carga_mental}
-                        </span>
-                    )}
+                {tarea.fecha_entrega && (
+                    <span className="text-xs text-gray-500">
+                        {new Date(tarea.fecha_entrega).toLocaleString("es-ES", {
+                            day: "2-digit",
+                            month: "short",
+                            hour: "2-digit",
+                            minute: "2-digit"
+                        })}
+                    </span>
+                )}
 
                 </div>
 

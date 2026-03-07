@@ -7,6 +7,9 @@ export function TodayView() {
     const [timerRunning, setTimerRunning] = useState(false);
     const [timeRemaining, setTimeRemaining] = useState(25 * 60);
     const userName = "María";
+    const fechaISO = selectedDueDate
+        ? new Date(selectedDueDate).toISOString()
+        : null;
 
     const [quickTaskInput, setQuickTaskInput] = useState("");
     const [selectedDueDate, setSelectedDueDate] = useState("");
@@ -46,7 +49,7 @@ export function TodayView() {
                 body: JSON.stringify({
                     nombre: quickTaskInput,
                     descripcion: descripcionInput || "Descripcion vacia",
-                    fecha_entrega: selectedDueDate || null,
+                    fecha_entrega: fechaISO,
                     carga_mental: selectedMentalLoad || null
                 }),
             });
