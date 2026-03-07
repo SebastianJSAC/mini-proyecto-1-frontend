@@ -1,8 +1,8 @@
-import {useState} from "react";
+import { useState } from "react";
 import Swal from "sweetalert2";
-import {Trash2} from "lucide-react";
+import { Trash2 } from "lucide-react";
 
-export default function TaskCard({tarea, setTasks, API_URL}) {
+export default function TaskCard({ tarea, setTasks, API_URL }) {
 
     const [subtaskInput, setSubtaskInput] = useState("");
     const [open, setOpen] = useState(true);
@@ -121,8 +121,8 @@ export default function TaskCard({tarea, setTasks, API_URL}) {
         try {
             const response = await fetch(`${API_URL}/tareas/api/tareas/${sub.id}/`, {
                 method: "PATCH",
-                headers: {"Content-Type": "application/json"},
-                body: JSON.stringify({completada: nuevoEstadoSubtarea})
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ completada: nuevoEstadoSubtarea })
             });
 
             if (response.ok) {
@@ -130,7 +130,7 @@ export default function TaskCard({tarea, setTasks, API_URL}) {
                     if (t.id === tarea.id) {
                         // 1. Actualizamos la subtarea específica
                         const nuevasSubtareas = t.subtareas.map(s =>
-                            s.id === sub.id ? {...s, completada: nuevoEstadoSubtarea} : s
+                            s.id === sub.id ? { ...s, completada: nuevoEstadoSubtarea } : s
                         );
 
                         // 2. Verificamos si TODAS están completadas ahora
@@ -142,7 +142,7 @@ export default function TaskCard({tarea, setTasks, API_URL}) {
                             actualizarEstadoPadre(t.id, todasCompletadas);
                         }
 
-                        return {...t, subtareas: nuevasSubtareas, completada: todasCompletadas};
+                        return { ...t, subtareas: nuevasSubtareas, completada: todasCompletadas };
                     }
                     return t;
                 }));
@@ -152,53 +152,88 @@ export default function TaskCard({tarea, setTasks, API_URL}) {
         }
     };
 
-// Función auxiliar para sincronizar el estado del padre en la API
+    // Función auxiliar para sincronizar el estado del padre en la API
     const actualizarEstadoPadre = async (id, estado) => {
         await fetch(`${API_URL}/tareas/api/tareas/${id}/`, {
             method: "PATCH",
-            headers: {"Content-Type": "application/json"},
-            body: JSON.stringify({completada: estado})
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ completada: estado })
         });
     };
 
     const toggleComplete = async () => {
+
         const nuevoEstadoPadre = !tarea.completada;
 
+        const confirm = await Swal.fire({
+            title: nuevoEstadoPadre ? "Completar tarea" : "Reabrir tarea",
+            text: nuevoEstadoPadre
+                ? "¿Quieres marcar esta tarea como completada?"
+                : "¿Quieres marcar esta tarea como pendiente nuevamente?",
+            icon: "question",
+            showCancelButton: true,
+            confirmButtonText: nuevoEstadoPadre ? "Sí, completar" : "Sí, reabrir",
+            cancelButtonText: "Cancelar",
+            confirmButtonColor: "#10b981"
+        });
+
+        if (!confirm.isConfirmed) return;
+
         try {
-            // 1. Actualizar el padre en la API
+
             const response = await fetch(`${API_URL}/tareas/api/tareas/${tarea.id}/`, {
                 method: "PATCH",
-                headers: {"Content-Type": "application/json"},
-                body: JSON.stringify({completada: nuevoEstadoPadre})
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ completada: nuevoEstadoPadre })
             });
 
             if (response.ok) {
-                // 2. Actualizar todas las subtareas en la API (cascada)
+
                 const promesas = subtasks.map(sub =>
                     fetch(`${API_URL}/tareas/api/tareas/${sub.id}/`, {
                         method: "PATCH",
-                        headers: {"Content-Type": "application/json"},
-                        body: JSON.stringify({completada: nuevoEstadoPadre})
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ completada: nuevoEstadoPadre })
                     })
                 );
 
                 await Promise.all(promesas);
 
-                // 3. Actualizar el estado local
                 setTasks(prev => prev.map(t => {
                     if (t.id === tarea.id) {
                         return {
                             ...t,
                             completada: nuevoEstadoPadre,
-                            subtareas: t.subtareas.map(s => ({...s, completada: nuevoEstadoPadre}))
+                            subtareas: t.subtareas.map(s => ({
+                                ...s,
+                                completada: nuevoEstadoPadre
+                            }))
                         };
                     }
                     return t;
                 }));
+
+                await Swal.fire({
+                    toast: true,
+                    position: "top-end",
+                    icon: "success",
+                    title: nuevoEstadoPadre
+                        ? "Tarea completada 🎉"
+                        : "Tarea marcada como pendiente",
+                    showConfirmButton: false,
+                    timer: 1500
+                });
+
             }
-            // eslint-disable-next-line no-unused-vars
+
         } catch (error) {
-            await Swal.fire({icon: "error", title: "Error", text: "No se pudo sincronizar la tarea"});
+
+            await Swal.fire({
+                icon: "error",
+                title: "Error",
+                text: "No se pudo actualizar la tarea"
+            });
+
         }
     };
 
@@ -274,13 +309,13 @@ export default function TaskCard({tarea, setTasks, API_URL}) {
                     className={`px-3 py-1 rounded-md text-xs font-bold transition-all ${tarea.completada
                         ? "bg-green-100 text-green-700"
                         : "bg-slate-100 text-slate-600"
-                    }`}
+                        }`}
                 >
                     {tarea.completada ? "Completada" : "○ Pendiente"}
                 </button>
 
                 <h3 className={`flex-1 text-lg font-medium ${tarea.completada ? "line-through text-gray-400" : "text-gray-900"
-                }`}>
+                    }`}>
                     {tarea.nombre}
                 </h3>
 
@@ -288,7 +323,7 @@ export default function TaskCard({tarea, setTasks, API_URL}) {
                     onClick={handleDeleteTask}
                     className="text-red-500 hover:text-red-700"
                 >
-                    <Trash2 size={18}/>
+                    <Trash2 size={18} />
                 </button>
 
                 <button
@@ -313,7 +348,7 @@ export default function TaskCard({tarea, setTasks, API_URL}) {
                                 className={`px-2 py-1 rounded-md text-xs font-bold transition-all ${sub.completada
                                     ? "bg-green-100 text-green-700"
                                     : "bg-slate-100 text-slate-600"
-                                }`}
+                                    }`}
                             >
                                 {sub.completada ? "✓" : "○"}
                             </button>
