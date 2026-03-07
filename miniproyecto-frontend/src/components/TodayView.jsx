@@ -56,7 +56,6 @@ export function TodayView() {
             const res = await response.json();
 
             if (response.ok) {
-
                 setTasks(prev => [...prev, res.data]);
 
                 setDescripcionInput("");
@@ -95,33 +94,6 @@ export function TodayView() {
         setTimeRemaining(25 * 60);
         setTimerRunning(false);
     };
-
-    //const progressPercentage = ((25 * 60 - timeRemaining) / (25 * 60)) * 100;
-
-    /*const handleMagicBreakdown = () => {
-        if (!quickTaskInput.trim()) return;
-
-        setIsBreakingDown(true);
-
-        setTimeout(() => {
-            const subtasks = generateSubtasks(quickTaskInput);
-
-            const newTask = {
-                id: Date.now(),
-                name: quickTaskInput,
-                dueDate: selectedDueDate,
-                mentalLoad: selectedMentalLoad,
-                subtasks: subtasks,
-            };
-
-            setQueueTasks([...queueTasks, newTask]);
-            setQuickTaskInput("");
-            setSelectedDueDate("");
-            setSelectedMentalLoad(undefined);
-            setIsBreakingDown(false);
-        }, 1500);
-
-    };*/
 
     const tareasPendientes = tasks.filter(t =>
         (t.parent === null || t.parent_id === null) && t.completada === false
@@ -210,8 +182,18 @@ export function TodayView() {
 
                                 <button
                                     onClick={handleAddTask}
-                                    disabled={!quickTaskInput.trim()}
-                                    className="ml-auto px-6 py-2.5 bg-emerald-600 text-white rounded-lg"
+                                    // Verificamos que todos los campos tengan contenido
+                                    disabled={
+                                        !quickTaskInput.trim() ||
+                                        !descripcionInput.trim() ||
+                                        !selectedDueDate ||
+                                        selectedMentalLoad === undefined
+                                    }
+                                    className={`ml-auto px-6 py-2.5 rounded-lg transition-colors ${
+                                        (!quickTaskInput.trim() || !descripcionInput.trim() || !selectedDueDate || selectedMentalLoad === undefined)
+                                            ? "bg-gray-300 cursor-not-allowed text-gray-500" // Estilo deshabilitado
+                                            : "bg-emerald-600 text-white hover:bg-emerald-700" // Estilo activo
+                                    }`}
                                 >
                                     Crear Actividad
                                 </button>

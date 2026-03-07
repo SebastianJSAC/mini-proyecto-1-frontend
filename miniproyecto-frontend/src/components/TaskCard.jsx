@@ -166,12 +166,17 @@ export default function TaskCard({ tarea, setTasks, API_URL }) {
 
     const toggleComplete = async () => {
         const nuevoEstadoPadre = !tarea.completada;
+
         const confirm = await Swal.fire({
-            title: nuevoEstadoPadre ? "Completar tarea" : "Reabrir tarea",
+            title: nuevoEstadoPadre ? "¿Marcar misión como completada?" : "¿Reabrir misión?",
+            text: nuevoEstadoPadre ? "Esto completará también todas las subtareas." : "Se reabrirá la tarea principal.",
             icon: "question",
             showCancelButton: true,
-            confirmButtonColor: "#10b981"
+            confirmButtonColor: "#10b981",
+            confirmButtonText: "Sí, cambiar",
+            cancelButtonText: "Cancelar"
         });
+
         if (!confirm.isConfirmed) return;
 
         try {
@@ -180,10 +185,28 @@ export default function TaskCard({ tarea, setTasks, API_URL }) {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ completada: nuevoEstadoPadre })
             });
+
             if (response.ok) {
-                setTasks(prev => prev.map(t => t.id === tarea.id ? { ...t, completada: nuevoEstadoPadre } : t));
+                setTasks(prev => prev.map(t => {
+                    if (t.id === tarea.id) {
+                        // Si completamos el padre, completamos todas las subtareas localmente
+                        const subtareasActualizadas = (t.subtareas || []).map(sub => ({
+                            ...sub,
+                            completada: nuevoEstadoPadre
+                        }));
+
+                        return {
+                            ...t,
+                            completada: nuevoEstadoPadre,
+                            subtareas: subtareasActualizadas
+                        };
+                    }
+                    return t;
+                }));
             }
-        } catch (error) { console.error(error); }
+        } catch (error) {
+            console.error("Error al actualizar estado de la tarea:", error);
+        }
     };
 
     const handleAddSubtask = async () => {
@@ -324,11 +347,27 @@ export default function TaskCard({ tarea, setTasks, API_URL }) {
                         <input
                             value={subtaskInput}
                             onChange={(e) => setSubtaskInput(e.target.value)}
-                            onKeyDown={(e) => e.key === 'Enter' && handleAddSubtask()}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                    e.preventDefault(); // Evita comportamientos extraños
+                                    handleAddSubtask();
+                                }
+                            }}
                             placeholder="Añadir subtarea..."
                             className="flex-1 px-3 py-1.5 border border-gray-200 rounded-lg text-sm outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
                         />
-                        <button onClick={handleAddSubtask} className="px-4 py-1.5 bg-emerald-600 text-white rounded-lg text-sm font-bold hover:bg-emerald-700 transition-colors">+</button>
+                        <button
+                            onClick={handleAddSubtask}
+                            // Deshabilitar si el input está vacío
+                            disabled={!subtaskInput.trim()}
+                            className={`px-4 py-1.5 rounded-lg text-sm font-bold transition-colors ${
+                                !subtaskInput.trim()
+                                    ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+                                    : "bg-emerald-600 text-white hover:bg-emerald-700"
+                            }`}
+                        >
+                            +
+                        </button>
                     </div>
                 </div>
             )}
