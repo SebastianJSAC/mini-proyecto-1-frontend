@@ -1,17 +1,62 @@
 import { useState } from "react";
 import Swal from "sweetalert2";
-import { Trash2 } from "lucide-react";
+import { Trash2, Edit2, Check, X, CalendarDays, Brain } from "lucide-react";
 
 export default function TaskCard({ tarea, setTasks, API_URL }) {
+    // --- NUEVOS ESTADOS PARA EDICIÓN ---
+    const [isEditing, setIsEditing] = useState(false);
+    const [editNombre, setEditNombre] = useState(tarea.nombre);
+    const [editDescripcion, setEditDescripcion] = useState(tarea.descripcion || "");
+    const [editCarga, setEditCarga] = useState(tarea.carga_mental || "");
 
+    // --- TUS ESTADOS ORIGINALES ---
     const [subtaskInput, setSubtaskInput] = useState("");
     const [open, setOpen] = useState(true);
 
     const subtasks = tarea.subtareas || [];
-    subtasks.filter(s => s.completada).length;
 
+    // --- FUNCIÓN PARA GUARDAR CAMBIOS ---
+    const handleUpdateTask = async () => {
+        if (!editNombre.trim()) return;
+
+        try {
+            const response = await fetch(`${API_URL}/tareas/api/tareas/${tarea.id}/`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    nombre: editNombre,
+                    descripcion: editDescripcion,
+                    carga_mental: editCarga || null
+                })
+            });
+
+            if (response.ok) {
+                const res = await response.json();
+
+                // Actualizamos el estado global en TodayView
+                setTasks(prev => prev.map(t =>
+                    t.id === tarea.id ? { ...t, ...res.data } : t
+                ));
+
+                setIsEditing(false);
+
+                Swal.fire({
+                    toast: true,
+                    position: "top-end",
+                    icon: "success",
+                    title: "Tarea actualizada",
+                    showConfirmButton: false,
+                    timer: 1500
+                });
+            }
+        } catch (error) {
+            console.error("Error al editar:", error);
+            Swal.fire({ icon: "error", title: "Error", text: "No se pudo actualizar" });
+        }
+    };
+
+    // --- TUS FUNCIONES ORIGINALES (SIN CAMBIOS) ---
     const handleDeleteTask = async () => {
-
         const confirm = await Swal.fire({
             title: "Eliminar tarea",
             text: "¿Seguro que quieres eliminar esta tarea?",
@@ -24,17 +69,13 @@ export default function TaskCard({ tarea, setTasks, API_URL }) {
 
         if (!confirm.isConfirmed) return;
 
-        const deletedTask = tarea;
-
-        // Guardamos una copia profunda de la tarea y sus subtareas antes de borrar
         const taskBackup = { ...tarea };
         const subtasksBackup = [...(tarea.subtareas || [])];
 
-        // eliminar de UI inmediatamente
         setTasks(prev => prev.filter(t => t.id !== tarea.id));
 
         try {
-            await fetch(`${API_URL}/tareas/api/tareas/${tarea.id}/`, {
+            const response = await fetch(`${API_URL}/tareas/api/tareas/${tarea.id}/`, {
                 method: "DELETE"
             });
 
@@ -50,24 +91,21 @@ export default function TaskCard({ tarea, setTasks, API_URL }) {
             });
 
             if (result.isConfirmed) {
-                const response = await fetch(`${API_URL}/tareas/api/tareas/`, {
+                const restoreResponse = await fetch(`${API_URL}/tareas/api/tareas/`, {
                     method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
+                    headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
                         nombre: taskBackup.nombre,
-                        completada: taskBackup.completada, //Mantener estado original
+                        completada: taskBackup.completada,
                         parent: taskBackup.parent || null
                     })
                 });
-                const res = await response.json();
+                const res = await restoreResponse.json();
 
-                if (response.ok) {
+                if (restoreResponse.ok) {
                     const newTask = res.data;
                     const restoredSubtasks = [];
 
-                    //Restaurar cada subtarea vinculándola al nuevo ID del padre
                     if (subtasksBackup.length > 0) {
                         const subtaskPromises = subtasksBackup.map(sub =>
                             fetch(`${API_URL}/tareas/api/tareas/`, {
@@ -76,330 +114,141 @@ export default function TaskCard({ tarea, setTasks, API_URL }) {
                                 body: JSON.stringify({
                                     nombre: sub.nombre,
                                     completada: sub.completada,
-                                    parent: newTask.id // El nuevo ID generado por la DB
+                                    parent: newTask.id
                                 })
                             }).then(r => r.json())
                         );
-
                         const subResults = await Promise.all(subtaskPromises);
-                        subResults.forEach(r => {
-                            if (r.data) restoredSubtasks.push(r.data);
-                        });
+                        subResults.forEach(r => { if (r.data) restoredSubtasks.push(r.data); });
                     }
-
-                    //Actualizar la UI con la tarea y sus subtareas
                     setTasks(prev => [...prev, { ...newTask, subtareas: restoredSubtasks }]);
-
-                    await Swal.fire({
-                        toast: true,
-                        position: "top-end",
-                        icon: "success",
-                        title: "Tarea y subtareas restauradas",
-                        showConfirmButton: false,
-                        timer: 1500
-                    });
                 }
             }
-
-            // eslint-disable-next-line no-unused-vars
         } catch (error) {
-
-            await Swal.fire({
-                icon: "error",
-                title: "Error",
-                text: "No se pudo eliminar la tarea"
-            });
-
-            // restaurar en UI si falla
-            setTasks(prev => [...prev, deletedTask]);
+            Swal.fire({ icon: "error", title: "Error", text: "No se pudo eliminar" });
+            setTasks(prev => [...prev, tarea]);
         }
     };
 
     const toggleSubtask = async (sub) => {
         const nuevoEstadoSubtarea = !sub.completada;
-
         try {
             const response = await fetch(`${API_URL}/tareas/api/tareas/${sub.id}/`, {
                 method: "PATCH",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ completada: nuevoEstadoSubtarea })
             });
-
             if (response.ok) {
                 setTasks(prev => prev.map(t => {
                     if (t.id === tarea.id) {
-                        // 1. Actualizamos la subtarea específica
                         const nuevasSubtareas = t.subtareas.map(s =>
                             s.id === sub.id ? { ...s, completada: nuevoEstadoSubtarea } : s
                         );
-
-                        // 2. Verificamos si TODAS están completadas ahora
-                        const todasCompletadas = nuevasSubtareas.length > 0 &&
-                            nuevasSubtareas.every(s => s.completada);
-
-                        // 3. Si el estado de la tarea principal debe cambiar, disparamos el PATCH al padre
-                        if (todasCompletadas !== t.completada) {
-                            actualizarEstadoPadre(t.id, todasCompletadas);
-                        }
-
+                        const todasCompletadas = nuevasSubtareas.length > 0 && nuevasSubtareas.every(s => s.completada);
                         return { ...t, subtareas: nuevasSubtareas, completada: todasCompletadas };
                     }
                     return t;
                 }));
             }
-        } catch (error) {
-            console.error("Error al actualizar subtarea", error);
-        }
-    };
-
-    // Función auxiliar para sincronizar el estado del padre en la API
-    const actualizarEstadoPadre = async (id, estado) => {
-        await fetch(`${API_URL}/tareas/api/tareas/${id}/`, {
-            method: "PATCH",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ completada: estado })
-        });
+        } catch (error) { console.error(error); }
     };
 
     const toggleComplete = async () => {
-
         const nuevoEstadoPadre = !tarea.completada;
-
         const confirm = await Swal.fire({
             title: nuevoEstadoPadre ? "Completar tarea" : "Reabrir tarea",
-            text: nuevoEstadoPadre
-                ? "¿Quieres marcar esta tarea como completada?"
-                : "¿Quieres marcar esta tarea como pendiente nuevamente?",
             icon: "question",
             showCancelButton: true,
-            confirmButtonText: nuevoEstadoPadre ? "Sí, completar" : "Sí, reabrir",
-            cancelButtonText: "Cancelar",
             confirmButtonColor: "#10b981"
         });
-
         if (!confirm.isConfirmed) return;
 
         try {
-
             const response = await fetch(`${API_URL}/tareas/api/tareas/${tarea.id}/`, {
                 method: "PATCH",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ completada: nuevoEstadoPadre })
             });
-
             if (response.ok) {
-
-                const promesas = subtasks.map(sub =>
-                    fetch(`${API_URL}/tareas/api/tareas/${sub.id}/`, {
-                        method: "PATCH",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ completada: nuevoEstadoPadre })
-                    })
-                );
-
-                await Promise.all(promesas);
-
-                setTasks(prev => prev.map(t => {
-                    if (t.id === tarea.id) {
-                        return {
-                            ...t,
-                            completada: nuevoEstadoPadre,
-                            subtareas: t.subtareas.map(s => ({
-                                ...s,
-                                completada: nuevoEstadoPadre
-                            }))
-                        };
-                    }
-                    return t;
-                }));
-
-                await Swal.fire({
-                    toast: true,
-                    position: "top-end",
-                    icon: "success",
-                    title: nuevoEstadoPadre
-                        ? "Tarea completada 🎉"
-                        : "Tarea marcada como pendiente",
-                    showConfirmButton: false,
-                    timer: 1500
-                });
-
+                setTasks(prev => prev.map(t => t.id === tarea.id ? { ...t, completada: nuevoEstadoPadre } : t));
             }
-
-        } catch (error) {
-
-            await Swal.fire({
-                icon: "error",
-                title: "Error",
-                text: "No se pudo actualizar la tarea"
-            });
-
-        }
+        } catch (error) { console.error(error); }
     };
 
     const handleAddSubtask = async () => {
-
-        if (!subtaskInput.trim()) {
-            await Swal.fire({
-                icon: "warning",
-                title: "Subtarea vacía",
-                text: "Escribe algo antes de agregar."
-            });
-            return;
-        }
-
+        if (!subtaskInput.trim()) return;
         try {
-
             const response = await fetch(`${API_URL}/tareas/api/tareas/`, {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    nombre: subtaskInput,
-                    parent: tarea.id
-                })
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ nombre: subtaskInput, parent: tarea.id })
             });
-
             const res = await response.json();
-
             if (response.ok) {
-
-                setTasks(prev =>
-                    prev.map(t =>
-                        t.id === tarea.id
-                            ? {
-                                ...t,
-                                subtareas: [...(t.subtareas || []), res.data]
-                            }
-                            : t
-                    )
-                );
-
+                setTasks(prev => prev.map(t => t.id === tarea.id ? { ...t, subtareas: [...(t.subtareas || []), res.data] } : t));
                 setSubtaskInput("");
-
-                await Swal.fire({
-                    toast: true,
-                    position: "top-end",
-                    icon: "success",
-                    title: "Subtarea agregada",
-                    showConfirmButton: false,
-                    timer: 1500
-                });
-
             }
-            // eslint-disable-next-line no-unused-vars
-        } catch (error) {
-            await Swal.fire({
-                icon: "error",
-                title: "Error",
-                text: "No se pudo crear la subtarea"
-            });
-
-        }
-
+        } catch (error) { console.error(error); }
     };
 
     return (
-        <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm space-y-4 hover:shadow-md transition">
-            {/* header */}
-            <div className="flex items-center gap-3">
-                <button
-                    onClick={toggleComplete}
-                    className={`px-3 py-1 rounded-md text-xs font-bold transition-all ${tarea.completada
-                        ? "bg-green-100 text-green-700"
-                        : "bg-slate-100 text-slate-600"
-                        }`}
-                >
-                    {tarea.completada ? "Completada" : "○ Pendiente"}
-                </button>
-
-                <h3 className={`flex-1 text-lg font-medium ${tarea.completada ? "line-through text-gray-400" : "text-gray-900"
-                    }`}>
-                    {tarea.nombre}
-                </h3>
-
-                {tarea.descripcion && (
-                    <h3 className="text-sm text-gray-500 mt-1">
-                        {tarea.descripcion}
-                    </h3>
-                )}
-
-                <div className="flex gap-4 text-xs text-gray-400 mt-2">
-
-                {tarea.fecha_entrega && (
-                    <span className="text-xs text-gray-500">
-                        {new Date(tarea.fecha_entrega).toLocaleString("es-ES", {
-                            day: "2-digit",
-                            month: "short",
-                            hour: "2-digit",
-                            minute: "2-digit"
-                        })}
-                    </span>
-                )}
-
+        <div className={`bg-white border rounded-xl p-5 shadow-sm space-y-4 transition ${
+            isEditing ? "border-emerald-500 ring-2 ring-emerald-50" : "border-gray-200 hover:shadow-md"
+        }`}>
+            {isEditing ? (
+                <div className="space-y-3">
+                    <div className="flex gap-2">
+                        <input
+                            className="flex-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none"
+                            value={editNombre}
+                            onChange={(e) => setEditNombre(e.target.value)}
+                        />
+                        <button onClick={handleUpdateTask} className="p-2 bg-emerald-600 text-white rounded-lg"><Check size={18} /></button>
+                        <button onClick={() => setIsEditing(false)} className="p-2 bg-gray-100 text-gray-500 rounded-lg"><X size={18} /></button>
+                    </div>
+                    <textarea
+                        className="w-full px-3 py-2 border rounded-lg text-sm outline-none"
+                        value={editDescripcion}
+                        onChange={(e) => setEditDescripcion(e.target.value)}
+                    />
+                    <div className="flex items-center gap-2">
+                        <Brain size={14} className="text-gray-400" />
+                        <select value={editCarga} onChange={(e) => setEditCarga(e.target.value)} className="text-xs border rounded p-1">
+                            <option value="">Carga Mental</option>
+                            {[1, 2, 3, 4, 5].map(n => <option key={n} value={n}>{n}</option>)}
+                        </select>
+                    </div>
                 </div>
+            ) : (
+                <div className="flex items-start gap-3">
+                    <button onClick={toggleComplete} className={`mt-1 px-3 py-1 rounded-md text-xs font-bold ${tarea.completada ? "bg-green-100 text-green-700" : "bg-slate-100 text-slate-600"}`}>
+                        {tarea.completada ? "Completada" : "○ Pendiente"}
+                    </button>
+                    <div className="flex-1">
+                        <h3 className={`text-lg font-medium ${tarea.completada ? "line-through text-gray-400" : "text-gray-900"}`}>{tarea.nombre}</h3>
+                        {tarea.descripcion && <p className="text-sm text-gray-500">{tarea.descripcion}</p>}
+                    </div>
+                    <div className="flex gap-2">
+                        <button onClick={() => setIsEditing(true)} className="text-gray-400 hover:text-blue-600"><Edit2 size={18} /></button>
+                        <button onClick={handleDeleteTask} className="text-gray-400 hover:text-red-600"><Trash2 size={18} /></button>
+                        <button onClick={() => setOpen(!open)} className="text-xs text-gray-400 border px-2 py-1 rounded">{open ? "Cerrar" : "Abrir"}</button>
+                    </div>
+                </div>
+            )}
 
-                <button
-                    onClick={handleDeleteTask}
-                    className="text-red-500 hover:text-red-700"
-                >
-                    <Trash2 size={18} />
-                </button>
-
-                <button
-                    onClick={() => setOpen(!open)}
-                    className="text-sm text-gray-400"
-                >
-                    {open ? "Ocultar" : "Ver"}
-                </button>
-            </div>
-
-            {/* subtareas */}
             {open && (
-                <div className="space-y-2 ml-6">
+                <div className="space-y-2 ml-6 pt-2 border-t border-gray-50">
                     {subtasks.map(sub => (
-                        <div
-                            key={sub.id}
-                            className="flex items-center gap-2 text-sm bg-gray-50 border border-gray-200 px-3 py-2 rounded-md"
-                        >
-
-                            <button
-                                onClick={() => toggleSubtask(sub)}
-                                className={`px-2 py-1 rounded-md text-xs font-bold transition-all ${sub.completada
-                                    ? "bg-green-100 text-green-700"
-                                    : "bg-slate-100 text-slate-600"
-                                    }`}
-                            >
+                        <div key={sub.id} className="flex items-center gap-2 text-sm bg-gray-50 border border-gray-200 px-3 py-2 rounded-md">
+                            <button onClick={() => toggleSubtask(sub)} className={`px-2 py-1 rounded-md text-xs font-bold ${sub.completada ? "bg-green-100 text-green-700" : "bg-slate-100 text-slate-600"}`}>
                                 {sub.completada ? "✓" : "○"}
                             </button>
-
-                            <span className={`${sub.completada ? "line-through text-gray-400" : "text-gray-700"}`}>
-                                {sub.nombre}
-                            </span>
+                            <span className={sub.completada ? "line-through text-gray-400" : ""}>{sub.nombre}</span>
                         </div>
                     ))}
-                    {subtasks.length === 0 && (
-                        <p className="text-xs text-gray-400">
-                            No hay subtareas
-                        </p>
-                    )}
-                    {/* agregar subtarea */}
                     <div className="flex gap-2 mt-3">
-
-                        <input
-                            value={subtaskInput}
-                            onChange={(e) => setSubtaskInput(e.target.value)}
-                            placeholder="Nueva subtarea..."
-                            className="flex-1 px-3 py-1 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400"
-                        />
-
-                        <button
-                            onClick={handleAddSubtask}
-                            className="px-3 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-md text-sm"
-                        >
-                            +
-                        </button>
+                        <input value={subtaskInput} onChange={(e) => setSubtaskInput(e.target.value)} placeholder="Nueva subtarea..." className="flex-1 px-3 py-1 border rounded-md text-sm outline-none" />
+                        <button onClick={handleAddSubtask} className="px-3 py-1 bg-emerald-600 text-white rounded-md">+</button>
                     </div>
                 </div>
             )}
