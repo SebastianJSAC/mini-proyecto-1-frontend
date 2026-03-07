@@ -11,11 +11,10 @@ export function TodayView() {
     const [quickTaskInput, setQuickTaskInput] = useState("");
     const [selectedDueDate, setSelectedDueDate] = useState("");
     const [selectedMentalLoad, setSelectedMentalLoad] = useState(undefined);
-    const [isBreakingDown, setIsBreakingDown] = useState(false);
-    const [queueTasks, setQueueTasks] = useState([]);
 
     const [tasks, setTasks] = useState([]);
 
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     const obtenerTareas = async () => {
         try {
             const response = await fetch(`${API_URL}/tareas/api/tareas/`);
@@ -32,7 +31,7 @@ export function TodayView() {
     };
 
     useEffect(() => {
-        obtenerTareas();
+        obtenerTareas().then()
     }, []);
 
     const handleAddTask = async () => {
@@ -90,9 +89,9 @@ export function TodayView() {
         setTimerRunning(false);
     };
 
-    const progressPercentage = ((25 * 60 - timeRemaining) / (25 * 60)) * 100;
+    //const progressPercentage = ((25 * 60 - timeRemaining) / (25 * 60)) * 100;
 
-    const handleMagicBreakdown = () => {
+    /*const handleMagicBreakdown = () => {
         if (!quickTaskInput.trim()) return;
 
         setIsBreakingDown(true);
@@ -115,7 +114,7 @@ export function TodayView() {
             setIsBreakingDown(false);
         }, 1500);
 
-    };
+    };*/
 
     const tareasPrincipales = tasks.filter(t => t.parent === null);
 

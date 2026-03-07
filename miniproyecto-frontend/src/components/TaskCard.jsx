@@ -1,16 +1,14 @@
-import { useState } from "react";
+import {useState} from "react";
 import Swal from "sweetalert2";
-import { Trash2 } from "lucide-react";
+import {Trash2} from "lucide-react";
 
-export default function TaskCard({ tarea, tasks, setTasks, API_URL }) {
+export default function TaskCard({tarea, setTasks, API_URL}) {
 
     const [subtaskInput, setSubtaskInput] = useState("");
     const [open, setOpen] = useState(true);
 
     const subtasks = tarea.subtareas || [];
-
-    const completadas = subtasks.filter(s => s.completada).length;
-
+    subtasks.filter(s => s.completada).length;
     const handleDeleteTask = async () => {
 
         const confirm = await Swal.fire({
@@ -59,14 +57,12 @@ export default function TaskCard({ tarea, tasks, setTasks, API_URL }) {
                         parent: deletedTask.parent || null
                     })
                 });
-
                 const res = await response.json();
 
                 if (response.ok) {
-
                     setTasks(prev => [...prev, res.data]);
 
-                    Swal.fire({
+                    await Swal.fire({
                         toast: true,
                         position: "top-end",
                         icon: "success",
@@ -74,14 +70,13 @@ export default function TaskCard({ tarea, tasks, setTasks, API_URL }) {
                         showConfirmButton: false,
                         timer: 1500
                     });
-
                 }
-
             }
 
+            // eslint-disable-next-line no-unused-vars
         } catch (error) {
 
-            Swal.fire({
+            await Swal.fire({
                 icon: "error",
                 title: "Error",
                 text: "No se pudo eliminar la tarea"
@@ -89,98 +84,100 @@ export default function TaskCard({ tarea, tasks, setTasks, API_URL }) {
 
             // restaurar en UI si falla
             setTasks(prev => [...prev, deletedTask]);
-
         }
-
     };
 
     const toggleSubtask = async (sub) => {
+        const nuevoEstadoSubtarea = !sub.completada;
 
         try {
-
             const response = await fetch(`${API_URL}/tareas/api/tareas/${sub.id}/`, {
                 method: "PATCH",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    completada: !sub.completada
-                })
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({completada: nuevoEstadoSubtarea})
             });
 
             if (response.ok) {
+                setTasks(prev => prev.map(t => {
+                    if (t.id === tarea.id) {
+                        // 1. Actualizamos la subtarea específica
+                        const nuevasSubtareas = t.subtareas.map(s =>
+                            s.id === sub.id ? {...s, completada: nuevoEstadoSubtarea} : s
+                        );
 
-                setTasks(prev =>
-                    prev.map(t => {
+                        // 2. Verificamos si TODAS están completadas ahora
+                        const todasCompletadas = nuevasSubtareas.length > 0 &&
+                            nuevasSubtareas.every(s => s.completada);
 
-                        if (t.id === tarea.id) {
-
-                            return {
-                                ...t,
-                                subtareas: t.subtareas.map(s =>
-                                    s.id === sub.id
-                                        ? { ...s, completada: !s.completada }
-                                        : s
-                                )
-                            };
-
+                        // 3. Si el estado de la tarea principal debe cambiar, disparamos el PATCH al padre
+                        if (todasCompletadas !== t.completada) {
+                            actualizarEstadoPadre(t.id, todasCompletadas);
                         }
 
-                        return t;
-
-                    })
-                );
-
+                        return {...t, subtareas: nuevasSubtareas, completada: todasCompletadas};
+                    }
+                    return t;
+                }));
             }
-
         } catch (error) {
-            console.error(error);
+            console.error("Error al actualizar subtarea", error);
         }
+    };
 
+// Función auxiliar para sincronizar el estado del padre en la API
+    const actualizarEstadoPadre = async (id, estado) => {
+        await fetch(`${API_URL}/tareas/api/tareas/${id}/`, {
+            method: "PATCH",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({completada: estado})
+        });
     };
 
     const toggleComplete = async () => {
+        const nuevoEstadoPadre = !tarea.completada;
 
         try {
-
+            // 1. Actualizar el padre en la API
             const response = await fetch(`${API_URL}/tareas/api/tareas/${tarea.id}/`, {
                 method: "PATCH",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    completada: !tarea.completada
-                })
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({completada: nuevoEstadoPadre})
             });
 
             if (response.ok) {
-
-                const updated = tasks.map(t =>
-                    t.id === tarea.id
-                        ? { ...t, completada: !t.completada }
-                        : t
+                // 2. Actualizar todas las subtareas en la API (cascada)
+                const promesas = subtasks.map(sub =>
+                    fetch(`${API_URL}/tareas/api/tareas/${sub.id}/`, {
+                        method: "PATCH",
+                        headers: {"Content-Type": "application/json"},
+                        body: JSON.stringify({completada: nuevoEstadoPadre})
+                    })
                 );
 
-                setTasks(updated);
+                await Promise.all(promesas);
 
+                // 3. Actualizar el estado local
+                setTasks(prev => prev.map(t => {
+                    if (t.id === tarea.id) {
+                        return {
+                            ...t,
+                            completada: nuevoEstadoPadre,
+                            subtareas: t.subtareas.map(s => ({...s, completada: nuevoEstadoPadre}))
+                        };
+                    }
+                    return t;
+                }));
             }
-
+            // eslint-disable-next-line no-unused-vars
         } catch (error) {
-
-            Swal.fire({
-                icon: "error",
-                title: "Error",
-                text: "No se pudo actualizar la tarea"
-            });
-
+            await Swal.fire({icon: "error", title: "Error", text: "No se pudo sincronizar la tarea"});
         }
-
     };
 
     const handleAddSubtask = async () => {
 
         if (!subtaskInput.trim()) {
-            Swal.fire({
+            await Swal.fire({
                 icon: "warning",
                 title: "Subtarea vacía",
                 text: "Escribe algo antes de agregar."
@@ -218,7 +215,7 @@ export default function TaskCard({ tarea, tasks, setTasks, API_URL }) {
 
                 setSubtaskInput("");
 
-                Swal.fire({
+                await Swal.fire({
                     toast: true,
                     position: "top-end",
                     icon: "success",
@@ -228,10 +225,9 @@ export default function TaskCard({ tarea, tasks, setTasks, API_URL }) {
                 });
 
             }
-
+            // eslint-disable-next-line no-unused-vars
         } catch (error) {
-
-            Swal.fire({
+            await Swal.fire({
                 icon: "error",
                 title: "Error",
                 text: "No se pudo crear la subtarea"
@@ -242,25 +238,21 @@ export default function TaskCard({ tarea, tasks, setTasks, API_URL }) {
     };
 
     return (
-
         <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm space-y-4 hover:shadow-md transition">
-
             {/* header */}
-
             <div className="flex items-center gap-3">
-
                 <button
                     onClick={toggleComplete}
                     className={`px-3 py-1 rounded-md text-xs font-bold transition-all ${tarea.completada
                         ? "bg-green-100 text-green-700"
                         : "bg-slate-100 text-slate-600"
-                        }`}
+                    }`}
                 >
                     {tarea.completada ? "Completada" : "○ Pendiente"}
                 </button>
 
                 <h3 className={`flex-1 text-lg font-medium ${tarea.completada ? "line-through text-gray-400" : "text-gray-900"
-                    }`}>
+                }`}>
                     {tarea.nombre}
                 </h3>
 
@@ -268,7 +260,7 @@ export default function TaskCard({ tarea, tasks, setTasks, API_URL }) {
                     onClick={handleDeleteTask}
                     className="text-red-500 hover:text-red-700"
                 >
-                    <Trash2 size={18} />
+                    <Trash2 size={18}/>
                 </button>
 
                 <button
@@ -277,17 +269,12 @@ export default function TaskCard({ tarea, tasks, setTasks, API_URL }) {
                 >
                     {open ? "Ocultar" : "Ver"}
                 </button>
-
             </div>
 
             {/* subtareas */}
-
             {open && (
-
                 <div className="space-y-2 ml-6">
-
                     {subtasks.map(sub => (
-
                         <div
                             key={sub.id}
                             className="flex items-center gap-2 text-sm bg-gray-50 border border-gray-200 px-3 py-2 rounded-md"
@@ -296,9 +283,9 @@ export default function TaskCard({ tarea, tasks, setTasks, API_URL }) {
                             <button
                                 onClick={() => toggleSubtask(sub)}
                                 className={`px-2 py-1 rounded-md text-xs font-bold transition-all ${sub.completada
-                                        ? "bg-green-100 text-green-700"
-                                        : "bg-slate-100 text-slate-600"
-                                    }`}
+                                    ? "bg-green-100 text-green-700"
+                                    : "bg-slate-100 text-slate-600"
+                                }`}
                             >
                                 {sub.completada ? "✓" : "○"}
                             </button>
@@ -306,21 +293,14 @@ export default function TaskCard({ tarea, tasks, setTasks, API_URL }) {
                             <span className={`${sub.completada ? "line-through text-gray-400" : "text-gray-700"}`}>
                                 {sub.nombre}
                             </span>
-
                         </div>
-
                     ))}
-
                     {subtasks.length === 0 && (
-
                         <p className="text-xs text-gray-400">
                             No hay subtareas
                         </p>
-
                     )}
-
                     {/* agregar subtarea */}
-
                     <div className="flex gap-2 mt-3">
 
                         <input
@@ -336,13 +316,9 @@ export default function TaskCard({ tarea, tasks, setTasks, API_URL }) {
                         >
                             +
                         </button>
-
                     </div>
-
                 </div>
-
             )}
-
         </div>
     );
 }
