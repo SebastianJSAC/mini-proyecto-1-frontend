@@ -294,7 +294,7 @@ export default function TaskCard({ tarea, tasks, setTasks, API_URL }) {
                         >
 
                             <button
-                                onClick={toggleSubtask}
+                                onClick={toggleSubtask(sub)}
                                 className={`px-3 py-1 rounded-md text-xs font-bold transition-all ${sub.completada
                                         ? "bg-green-100 text-green-700"
                                         : "bg-slate-100 text-slate-600"
