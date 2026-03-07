@@ -126,6 +126,16 @@ export function TodayView() {
         day: "numeric",
     });
 
+    const tareasPendientesOrdenadas = tasks
+        .filter(t => (t.parent === null || t.parent_id === null) && !t.completada)
+        .sort((a, b) => {
+            if (!a.fecha_entrega) return 1;
+            if (!b.fecha_entrega) return -1;
+            return new Date(a.fecha_entrega) - new Date(b.fecha_entrega);
+        });
+
+    const tareaMasCercana = tareasPendientesOrdenadas[0];
+
     return (<main className="flex-1 overflow-auto">
         <div className="max-w-7xl mx-auto px-8 py-8">
             <div className="mb-8"><h1 className="text-3xl font-light text-gray-900 mb-2">
@@ -207,11 +217,10 @@ export function TodayView() {
                                         !selectedDueDate ||
                                         selectedMentalLoad === undefined
                                     }
-                                    className={`ml-auto px-6 py-2.5 rounded-lg transition-colors ${
-                                        (!quickTaskInput.trim() || !descripcionInput.trim() || !selectedDueDate || selectedMentalLoad === undefined)
+                                    className={`ml-auto px-6 py-2.5 rounded-lg transition-colors ${(!quickTaskInput.trim() || !descripcionInput.trim() || !selectedDueDate || selectedMentalLoad === undefined)
                                             ? "bg-gray-300 cursor-not-allowed text-gray-500" // Estilo deshabilitado
                                             : "bg-emerald-600 text-white hover:bg-emerald-700" // Estilo activo
-                                    }`}
+                                        }`}
                                 >
                                     Crear Actividad
                                 </button>
@@ -220,24 +229,28 @@ export function TodayView() {
                         </div>
                     </div>
 
-                    {tasks.length > 0 && (
-                        <div className="bg-white border border-emerald-200 rounded-xl p-6 mt-6">
-
+                    {tareaMasCercana && (
+                        <div className="bg-white border border-emerald-200 rounded-xl p-6 mt-6 shadow-sm">
                             <div className="flex justify-between items-center mb-3">
-                                <span className="text-sm bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full">
-                                    Tarea actual
+                                <span className="text-sm bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full font-medium">
+                                    Próximo vencimiento
                                 </span>
 
-                                <span
-                                    className="bg-emerald-100 text-emerald-700 w-7 h-7 flex items-center justify-center rounded-full text-sm">
-                                    1
+                                <span className="bg-emerald-500 text-white w-7 h-7 flex items-center justify-center rounded-full text-xs animate-pulse">
+                                    !
                                 </span>
                             </div>
 
-                            <h3 className="text-lg font-medium text-gray-900">
-                                {tasks[0].nombre}
+                            <h3 className="text-lg font-semibold text-gray-900 mb-1">
+                                {tareaMasCercana.nombre}
                             </h3>
 
+                            <p className="text-sm text-gray-500 flex items-center gap-1">
+                                <CalendarDays className="w-4 h-4" />
+                                Vence: {tareaMasCercana.fecha_entrega
+                                    ? new Date(tareaMasCercana.fecha_entrega).toLocaleString()
+                                    : "Sin fecha definida"}
+                            </p>
                         </div>
                     )}
 
