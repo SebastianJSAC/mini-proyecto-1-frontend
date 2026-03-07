@@ -492,7 +492,7 @@ export default function TaskCard({ descripcionInput, tarea, setTasks, API_URL, n
                                 <Trash2 size={16} /></button>
                             <button onClick={() => setOpen(!open)}
                                 className="text-xs font-medium text-gray-400 hover:text-gray-600 px-2 py-1 transition-colors">
-                                {open ? "Contraer" : "Expandir"}
+                                {open ? "Contraer" : "Ver detalle"}
                             </button>
                         </div>
                     </div>
