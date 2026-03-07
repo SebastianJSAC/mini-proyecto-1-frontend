@@ -7,10 +7,11 @@ export function TodayView() {
     const [timerRunning, setTimerRunning] = useState(false);
     const [timeRemaining, setTimeRemaining] = useState(25 * 60);
     const userName = "María";
+    const [selectedDueDate, setSelectedDueDate] = useState("");
+
     const fechaISO = selectedDueDate ? new Date(selectedDueDate).toISOString() : null;
 
     const [quickTaskInput, setQuickTaskInput] = useState("");
-    const [selectedDueDate, setSelectedDueDate] = useState("");
     const [selectedMentalLoad, setSelectedMentalLoad] = useState(undefined);
     const [descripcionInput, setDescripcionInput] = useState("");
 
