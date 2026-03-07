@@ -123,9 +123,11 @@ export function TodayView() {
 
     };*/
 
-    const tareasPrincipales = tasks.filter(t => t.parent === null);
+    const tareasPendientes = tasks.filter(t =>
+        (t.parent === null || t.parent_id === null) && t.completada === false
+    );
 
-    const totalMisiones = tareasPrincipales.length;
+    const totalMisiones = tareasPendientes.length;
 
     return (<main className="flex-1 overflow-auto">
         <div className="max-w-7xl mx-auto px-8 py-8">
