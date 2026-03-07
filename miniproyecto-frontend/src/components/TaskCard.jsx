@@ -198,13 +198,25 @@ export default function TaskCard({ descripcionInput, tarea, setTasks, API_URL, n
             if (response.ok) {
                 setTasks(prevTasks => prevTasks.map(t => {
                     if (t.id === tarea.id) {
-                        // 1. Actualizamos la lista de subtareas
+                        // Actualizamos la lista de subtareas
                         const nuevasSubtareas = (t.subtareas || []).map(s =>
                             s.id === sub.id ? { ...s, completada: nuevoEstadoSubtarea } : s
                         );
 
-                        // 2. Opcional: Si quieres que el padre se complete solo si todas están listas
+                        // Opcional: Si quieres que el padre se complete solo si todas están listas
                         const todasCompletadas = nuevasSubtareas.length > 0 && nuevasSubtareas.every(s => s.completada);
+
+                        // Si se acaban de completar todas, lanzamos el mensaje de éxito
+                        if (todasCompletadas && !tarea.completada) {
+                            Swal.fire({
+                                toast: true,
+                                position: 'top-end',
+                                text: '¡Misión cumplida! Todas las subtareas listas.',
+                                showConfirmButton: false,
+                                timer: 2000,
+                                icon: 'success'
+                            });
+                        }
 
                         return {
                             ...t,
@@ -256,7 +268,6 @@ export default function TaskCard({ descripcionInput, tarea, setTasks, API_URL, n
             if (response.ok) {
 
                 if (!tarea.completada) {
-
                     Swal.fire({
                         toast: true,
                         position: 'top-end',
@@ -264,7 +275,17 @@ export default function TaskCard({ descripcionInput, tarea, setTasks, API_URL, n
                         showConfirmButton: false,
                         icon: 'success'
                     });
+                }
 
+                if (!nuevoEstadoPadre) {
+                    Swal.fire({
+                        toast: true,
+                        position: 'top-end',
+                        text: 'Tarea y subtareas reabiertas',
+                        showConfirmButton: false,
+                        timer: 1500,
+                        icon: 'info'
+                    });
                 }
 
                 setTasks(prev => prev.map(t => {
