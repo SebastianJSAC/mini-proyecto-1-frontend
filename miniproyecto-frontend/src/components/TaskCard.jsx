@@ -1,8 +1,8 @@
-import {useState} from "react";
+import { useState } from "react";
 import Swal from "sweetalert2";
-import {Trash2, Edit2, Check, X, CalendarDays, Brain} from "lucide-react";
+import { Trash2, Edit2, Check, X, CalendarDays, Brain } from "lucide-react";
 
-export default function TaskCard({tarea, setTasks, API_URL, navigate}) {
+export default function TaskCard({ tarea, setTasks, API_URL, navigate }) {
     // --- NUEVOS ESTADOS PARA EDICIÓN ---
     const [isEditing, setIsEditing] = useState(false);
     const [editNombre, setEditNombre] = useState(tarea.nombre);
@@ -17,13 +17,13 @@ export default function TaskCard({tarea, setTasks, API_URL, navigate}) {
 
     const getMentalLoadConfig = (level) => {
         const configs = {
-            1: {color: "bg-green-100 text-green-700 border-green-200", label: "Muy Baja"},
-            2: {color: "bg-emerald-100 text-emerald-700 border-emerald-200", label: "Baja"},
-            3: {color: "bg-yellow-100 text-yellow-700 border-yellow-200", label: "Media"},
-            4: {color: "bg-orange-100 text-orange-700 border-orange-200", label: "Alta"},
-            5: {color: "bg-red-100 text-red-700 border-red-200", label: "Muy Alta"},
+            1: { color: "bg-green-100 text-green-700 border-green-200", label: "Muy Baja" },
+            2: { color: "bg-emerald-100 text-emerald-700 border-emerald-200", label: "Baja" },
+            3: { color: "bg-yellow-100 text-yellow-700 border-yellow-200", label: "Media" },
+            4: { color: "bg-orange-100 text-orange-700 border-orange-200", label: "Alta" },
+            5: { color: "bg-red-100 text-red-700 border-red-200", label: "Muy Alta" },
         };
-        return configs[level] || {color: "bg-gray-100 text-gray-500 border-gray-200", label: "N/A"};
+        return configs[level] || { color: "bg-gray-100 text-gray-500 border-gray-200", label: "N/A" };
     };
 
     const handleUpdateTask = async () => {
@@ -35,7 +35,7 @@ export default function TaskCard({tarea, setTasks, API_URL, navigate}) {
         try {
             const response = await fetch(`${API_URL}/tareas/api/tareas/${tarea.id}/`, {
                 method: "PATCH",
-                headers: {"Content-Type": "application/json"},
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     nombre: editNombre,
                     descripcion: editDescripcion,
@@ -49,7 +49,7 @@ export default function TaskCard({tarea, setTasks, API_URL, navigate}) {
 
                 // Actualizamos el estado global en TodayView
                 setTasks(prev => prev.map(t =>
-                    t.id === tarea.id ? {...t, ...res.data} : t
+                    t.id === tarea.id ? { ...t, ...res.data } : t
                 ));
 
                 setIsEditing(false);
@@ -67,7 +67,7 @@ export default function TaskCard({tarea, setTasks, API_URL, navigate}) {
             }
         } catch (error) {
             console.error("Error al editar:", error);
-            await Swal.fire({icon: "error", title: "Error", text: "No se pudo actualizar"});
+            await Swal.fire({ icon: "error", title: "Error", text: "No se pudo actualizar" });
         }
     };
 
@@ -90,7 +90,7 @@ export default function TaskCard({tarea, setTasks, API_URL, navigate}) {
             return;
         }
 
-        const taskBackup = {...tarea};
+        const taskBackup = { ...tarea };
         const subtasksBackup = [...(tarea.subtareas || [])];
 
         setTasks(prev => prev.filter(t => t.id !== tarea.id));
@@ -117,11 +117,14 @@ export default function TaskCard({tarea, setTasks, API_URL, navigate}) {
 
                 const restoreResponse = await fetch(`${API_URL}/tareas/api/tareas/`, {
                     method: "POST",
-                    headers: {"Content-Type": "application/json"},
+                    headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
                         nombre: taskBackup.nombre,
                         completada: taskBackup.completada,
-                        parent: taskBackup.parent || null
+                        parent: taskBackup.parent || null,
+                        carga_mental: taskBackup.carga_mental,
+                        fecha_entrega: taskBackup.fecha_entrega,
+                        fecha_creacion: taskBackup.fecha_creacion || taskBackup.created_at
                     })
                 });
                 const res = await restoreResponse.json();
@@ -134,11 +137,13 @@ export default function TaskCard({tarea, setTasks, API_URL, navigate}) {
                         const subtaskPromises = subtasksBackup.map(sub =>
                             fetch(`${API_URL}/tareas/api/tareas/`, {
                                 method: "POST",
-                                headers: {"Content-Type": "application/json"},
+                                headers: { "Content-Type": "application/json" },
                                 body: JSON.stringify({
                                     nombre: sub.nombre,
                                     completada: sub.completada,
-                                    parent: newTask.id
+                                    parent: newTask.id,
+                                    carga_mental: sub.carga_mental || null,
+                                    fecha_entrega: sub.fecha_entrega || null
                                 })
                             }).then(r => r.json())
                         );
@@ -147,11 +152,11 @@ export default function TaskCard({tarea, setTasks, API_URL, navigate}) {
                             if (r.data) restoredSubtasks.push(r.data);
                         });
                     }
-                    setTasks(prev => [...prev, {...newTask, subtareas: restoredSubtasks}]);
+                    setTasks(prev => [...prev, { ...newTask, subtareas: restoredSubtasks }]);
                 }
             }
         } catch (error) {
-            Swal.fire({icon: "error", title: "Error", text: "No se pudo eliminar"});
+            Swal.fire({ icon: "error", title: "Error", text: "No se pudo eliminar" });
             setTasks(prev => [...prev, tarea]);
         } finally {
             setTimeout(() => navigate("/hoy"), 500);
@@ -163,17 +168,17 @@ export default function TaskCard({tarea, setTasks, API_URL, navigate}) {
         try {
             const response = await fetch(`${API_URL}/tareas/api/tareas/${sub.id}/`, {
                 method: "PATCH",
-                headers: {"Content-Type": "application/json"},
-                body: JSON.stringify({completada: nuevoEstadoSubtarea})
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ completada: nuevoEstadoSubtarea })
             });
             if (response.ok) {
                 setTasks(prev => prev.map(t => {
                     if (t.id === tarea.id) {
                         const nuevasSubtareas = t.subtareas.map(s =>
-                            s.id === sub.id ? {...s, completada: nuevoEstadoSubtarea} : s
+                            s.id === sub.id ? { ...s, completada: nuevoEstadoSubtarea } : s
                         );
                         const todasCompletadas = nuevasSubtareas.length > 0 && nuevasSubtareas.every(s => s.completada);
-                        return {...t, subtareas: nuevasSubtareas, completada: todasCompletadas};
+                        return { ...t, subtareas: nuevasSubtareas, completada: todasCompletadas };
                     }
                     return t;
                 }));
@@ -201,8 +206,8 @@ export default function TaskCard({tarea, setTasks, API_URL, navigate}) {
         try {
             const response = await fetch(`${API_URL}/tareas/api/tareas/${tarea.id}/`, {
                 method: "PATCH",
-                headers: {"Content-Type": "application/json"},
-                body: JSON.stringify({completada: nuevoEstadoPadre})
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ completada: nuevoEstadoPadre })
             });
 
             if (response.ok) {
@@ -237,8 +242,8 @@ export default function TaskCard({tarea, setTasks, API_URL, navigate}) {
         try {
             const response = await fetch(`${API_URL}/tareas/api/tareas/`, {
                 method: "POST",
-                headers: {"Content-Type": "application/json"},
-                body: JSON.stringify({nombre: subtaskInput, parent: tarea.id})
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ nombre: subtaskInput, parent: tarea.id })
             });
             const res = await response.json();
             if (response.ok) {
@@ -268,13 +273,13 @@ export default function TaskCard({tarea, setTasks, API_URL, navigate}) {
     const formatearFecha = (fechaStr) => {
         if (!fechaStr) return "Sin fecha";
         const fecha = new Date(fechaStr);
-        return fecha.toLocaleDateString() + " " + fecha.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
+        return fecha.toLocaleDateString() + " " + fecha.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     };
 
     return (
         <div
             className={`bg-white border rounded-xl p-5 shadow-sm space-y-4 transition ${isEditing ? "border-emerald-500 ring-2 ring-emerald-50" : "border-gray-200 hover:shadow-md"
-            }`}>
+                }`}>
             {isEditing ? (
                 <div className="space-y-4">
                     <div className="flex gap-2">
@@ -284,10 +289,10 @@ export default function TaskCard({tarea, setTasks, API_URL, navigate}) {
                             onChange={(e) => setEditNombre(e.target.value)}
                         />
                         <button onClick={handleUpdateTask}
-                                className="p-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700"><Check
-                            size={18}/></button>
+                            className="p-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700"><Check
+                                size={18} /></button>
                         <button onClick={() => setIsEditing(false)}
-                                className="p-2 bg-gray-100 text-gray-500 rounded-lg hover:bg-gray-200"><X size={18}/>
+                            className="p-2 bg-gray-100 text-gray-500 rounded-lg hover:bg-gray-200"><X size={18} />
                         </button>
                     </div>
                     <textarea
@@ -310,7 +315,7 @@ export default function TaskCard({tarea, setTasks, API_URL, navigate}) {
                     {/* SELECTOR DE CARGA MENTAL EN MODO EDICIÓN */}
                     <div className="flex flex-col gap-2">
                         <label className="text-xs font-semibold text-gray-500 flex items-center gap-1">
-                            <Brain size={14}/> CARGA MENTAL:
+                            <Brain size={14} /> CARGA MENTAL:
                         </label>
                         <div className="flex gap-2">
                             {[1, 2, 3, 4, 5].map(n => (
@@ -321,7 +326,7 @@ export default function TaskCard({tarea, setTasks, API_URL, navigate}) {
                                     className={`w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold border transition-all ${Number(editCarga) === n
                                         ? getMentalLoadConfig(n).color + " ring-2 ring-offset-2 ring-emerald-500"
                                         : "bg-white text-gray-400 border-gray-200 hover:border-gray-300"
-                                    }`}
+                                        }`}
                                 >
                                     {n}
                                 </button>
@@ -332,7 +337,7 @@ export default function TaskCard({tarea, setTasks, API_URL, navigate}) {
             ) : (
                 <div className="flex items-start gap-3">
                     <button onClick={toggleComplete}
-                            className={`mt-1 px-3 py-1 rounded-md text-xs font-bold flex-shrink-0 transition-colors ${tarea.completada ? "bg-green-100 text-green-700" : "bg-slate-100 text-slate-600 hover:bg-slate-200"}`}>
+                        className={`mt-1 px-3 py-1 rounded-md text-xs font-bold flex-shrink-0 transition-colors ${tarea.completada ? "bg-green-100 text-green-700" : "bg-slate-100 text-slate-600 hover:bg-slate-200"}`}>
                         {tarea.completada ? "Completada" : "○ Pendiente"}
                     </button>
 
@@ -355,7 +360,7 @@ export default function TaskCard({tarea, setTasks, API_URL, navigate}) {
                         {tarea.descripcion && <p className="text-sm text-gray-500 line-clamp-2">{tarea.descripcion}</p>}
 
                         <div className="mt-2 flex items-center gap-1 text-xs text-emerald-600 font-medium">
-                            <CalendarDays className="w-3 h-3"/>
+                            <CalendarDays className="w-3 h-3" />
                             Entrega: {formatearFecha(tarea.fecha_entrega)}
                         </div>
                     </div>
@@ -365,13 +370,13 @@ export default function TaskCard({tarea, setTasks, API_URL, navigate}) {
                             Creado: {formatearFecha(tarea.created_at || tarea.fecha_creacion)}
                         </span>
                         <button onClick={() => setIsEditing(true)}
-                                className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
-                            <Edit2 size={16}/></button>
+                            className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
+                            <Edit2 size={16} /></button>
                         <button onClick={handleDeleteTask}
-                                className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
-                            <Trash2 size={16}/></button>
+                            className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
+                            <Trash2 size={16} /></button>
                         <button onClick={() => setOpen(!open)}
-                                className="text-xs font-medium text-gray-400 hover:text-gray-600 px-2 py-1 transition-colors">
+                            className="text-xs font-medium text-gray-400 hover:text-gray-600 px-2 py-1 transition-colors">
                             {open ? "Contraer" : "Expandir"}
                         </button>
                     </div>
@@ -383,9 +388,9 @@ export default function TaskCard({tarea, setTasks, API_URL, navigate}) {
                 <div className="space-y-2 ml-6 pt-3 border-t border-gray-50">
                     {subtasks.length > 0 ? subtasks.map(sub => (
                         <div key={sub.id}
-                             className="flex items-center gap-2 text-sm bg-gray-50 border border-gray-200 px-3 py-2 rounded-lg group">
+                            className="flex items-center gap-2 text-sm bg-gray-50 border border-gray-200 px-3 py-2 rounded-lg group">
                             <button onClick={() => toggleSubtask(sub)}
-                                    className={`px-2 py-0.5 rounded text-[10px] font-black transition-colors ${sub.completada ? "bg-green-200 text-green-800" : "bg-white text-slate-400 border border-slate-200"}`}>
+                                className={`px-2 py-0.5 rounded text-[10px] font-black transition-colors ${sub.completada ? "bg-green-200 text-green-800" : "bg-white text-slate-400 border border-slate-200"}`}>
                                 {sub.completada ? "✓" : "○"}
                             </button>
                             <span
@@ -414,11 +419,10 @@ export default function TaskCard({tarea, setTasks, API_URL, navigate}) {
                             onClick={handleAddSubtask}
                             // Deshabilitar si el input está vacío
                             disabled={!subtaskInput.trim()}
-                            className={`px-4 py-1.5 rounded-lg text-sm font-bold transition-colors ${
-                                !subtaskInput.trim()
-                                    ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-                                    : "bg-emerald-600 text-white hover:bg-emerald-700"
-                            }`}
+                            className={`px-4 py-1.5 rounded-lg text-sm font-bold transition-colors ${!subtaskInput.trim()
+                                ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+                                : "bg-emerald-600 text-white hover:bg-emerald-700"
+                                }`}
                         >
                             +
                         </button>
