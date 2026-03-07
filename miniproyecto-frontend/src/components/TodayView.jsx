@@ -333,6 +333,7 @@ export function TodayView() {
                             .map((tarea) => (
 
                                 <TaskCard
+                                    descripcionInput={descripcionInput}
                                     key={tarea.id}
                                     tarea={tarea}
                                     tasks={tasks}
