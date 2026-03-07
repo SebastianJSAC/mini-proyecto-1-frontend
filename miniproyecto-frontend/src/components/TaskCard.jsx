@@ -320,9 +320,9 @@ export default function TaskCard({ tarea, setTasks, API_URL }) {
                 </h3>
 
                 {tarea.descripcion && (
-                    <p className="text-sm text-gray-500 mt-1">
+                    <h3 className="text-sm text-gray-500 mt-1">
                         {tarea.descripcion}
-                    </p>
+                    </h3>
                 )}
 
                 <div className="flex gap-4 text-xs text-gray-400 mt-2">
