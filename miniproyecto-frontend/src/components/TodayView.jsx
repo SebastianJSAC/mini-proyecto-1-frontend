@@ -181,7 +181,15 @@ export function TodayView() {
                                     onChange={(e) => setDescripcionInput(e.target.value)}
                                     placeholder="Descripción de la tarea..."
                                     className="w-full px-5 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:border-emerald-500"
+                                    maxlength="100"
                                 />
+
+                                <div className={`absolute bottom-2 right-2 text-[10px] font-mono px-1.5 py-0.5 rounded shadow-sm border ${descripcionInput.length >= 90
+                                        ? "bg-red-50 text-red-600 border-red-100"
+                                        : "bg-gray-50 text-gray-400 border-gray-100"
+                                    }`}>
+                                    {100 - descripcionInput.length}
+                                </div>
 
                             </div>
 
