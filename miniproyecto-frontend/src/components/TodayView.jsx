@@ -1,8 +1,8 @@
-import { Play, Pause, RotateCcw, Sparkles, CalendarDays, Brain } from "lucide-react";
-import { useState, useEffect } from "react";
+import {Play, Pause, RotateCcw, Sparkles, CalendarDays, Brain, Plus, X} from "lucide-react";
+import {useState, useEffect} from "react";
 import TaskCard from "./TaskCard.jsx";
 import Swal from "sweetalert2";
-import { useSearchParams, useNavigate } from "react-router-dom";
+import {useSearchParams, useNavigate} from "react-router-dom";
 
 export function TodayView() {
     const API_URL = import.meta.env.VITE_API_URL?.replace(/\/$/, "");
@@ -20,6 +20,12 @@ export function TodayView() {
     const [tasks, setTasks] = useState([]);
     const [searchParams, setSearchParams] = useSearchParams();
     const navigate = useNavigate();
+
+    const [selectedTipoTarea, setSelectedTipoTarea] = useState("OT"); // 'OT' es 'Otro' por defecto en  modelo
+    const [cursoInput, setCursoInput] = useState("");
+
+    const [tempSubtasks, setTempSubtasks] = useState([]);
+    const [currentSubtaskInput, setCurrentSubtaskInput] = useState("");
 
     const obtenerTareas = async () => {
         try {
@@ -40,6 +46,12 @@ export function TodayView() {
         obtenerTareas().then()
     }, []);
 
+    const addSubtaskToTempList = () => {
+        if (!currentSubtaskInput.trim()) return;
+        setTempSubtasks([...tempSubtasks, currentSubtaskInput.trim()]);
+        setCurrentSubtaskInput("");
+    };
+
     const handleAddTask = async () => {
         if (!quickTaskInput.trim()) return;
 
@@ -56,20 +68,44 @@ export function TodayView() {
                     nombre: quickTaskInput,
                     descripcion: descripcionInput || "Descripcion de la tarea vacia",
                     fecha_entrega: fechaISO,
-                    carga_mental: selectedMentalLoad || null
+                    carga_mental: selectedMentalLoad || null,
+                    tipo_tarea: selectedTipoTarea,
+                    curso: cursoInput || null
                 }),
             });
 
             const res = await response.json();
 
             if (response.ok) {
-                setTasks(prev => [...prev, res.data]);
+                const tareaPadre = res.data || res;
+
+                //Crear las subtareas si existen en la lista temporal
+                if (tempSubtasks.length > 0) {
+                    const promesas = tempSubtasks.map(subNombre =>
+                        fetch(`${API_URL}/tareas/api/tareas/`, {
+                            method: "POST",
+                            headers: {"Content-Type": "application/json"},
+                            body: JSON.stringify({
+                                nombre: subNombre,
+                                parent: tareaPadre.id
+                            })
+                        })
+                    );
+                    await Promise.all(promesas);
+                }
+
+                await obtenerTareas();
+
+                //setTasks(prev => [...prev, res.data]);
 
                 setDescripcionInput("");
 
                 setQuickTaskInput("");
                 setSelectedDueDate("");
                 setSelectedMentalLoad(undefined);
+                setCursoInput("");
+                setSelectedTipoTarea("OT");
+                setTempSubtasks([])
 
                 await Swal.fire({
                     toast: true,
@@ -145,136 +181,198 @@ export function TodayView() {
         ? Math.round((completadas / totalSubtareas) * 100)
         : 0;
 
-    return (<main className="flex-1 overflow-auto">
-        <div className="max-w-7xl mx-auto px-8 py-8">
-            <div className="mb-8"><h1 className="text-3xl font-light text-gray-900 mb-2">
-                Hola, {userName}. <span
-                    className="font-medium">Tienes {totalMisiones} {totalMisiones === 1 ? "tarea" : "tareas"} actualmente.</span>
-            </h1> <p className="text-base text-gray-500">{hoy}</p></div>
+    return (
+        <main className="flex-1 overflow-auto">
+            <div className="max-w-7xl mx-auto px-8 py-8">
+                <div className="mb-8">
+                    <h1 className="text-3xl font-light text-gray-900 mb-2">
+                        Hola, {userName}. <span
+                        className="font-medium">Tienes {totalMisiones} {totalMisiones === 1 ? "tarea" : "tareas"} actualmente.</span>
+                    </h1>
+                    <p className="text-base text-gray-500">{hoy}</p>
+                </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
 
-                {/* Main Area */}
-                <div className="lg:col-span-2 space-y-6">
+                    {/* Main Area */}
+                    <div className="lg:col-span-2 space-y-6">
 
-                    {/* Quick Add */}
-                    <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm mb-8">
-                        <div className="space-y-4">
+                        {/* Quick Add */}
+                        <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm mb-8">
+                            <div className="space-y-4">
 
-                            <div className="relative">
-                                <input
-                                    type="text"
-                                    value={quickTaskInput}
-                                    onChange={(e) => setQuickTaskInput(e.target.value)}
-                                    onKeyDown={(e) => {
-                                        if (e.key === "Enter" && !e.shiftKey) {
-                                            e.preventDefault();
-                                            handleAddTask();
-                                        }
-                                    }}
-                                    placeholder="¿Qué tarea tienes para agregar?"
-                                    className="w-full px-5 py-4 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
-                                />
-
-                                <textarea
-                                    value={descripcionInput}
-                                    onChange={(e) => setDescripcionInput(e.target.value)}
-                                    placeholder="Descripción de la tarea..."
-                                    className="w-full px-5 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:border-emerald-500"
-                                    maxlength="100"
-                                />
-
-                                <div className={`absolute bottom-2 right-2 text-[10px] font-mono px-1.5 py-0.5 rounded shadow-sm border ${descripcionInput.length >= 90
-                                        ? "bg-red-50 text-red-600 border-red-100"
-                                        : "bg-gray-50 text-gray-400 border-gray-100"
-                                    }`}>
-                                    {100 - descripcionInput.length}
-                                </div>
-
-                            </div>
-
-                            <div className="flex items-center gap-3 flex-wrap">
-
-                                <div className="flex items-center gap-2 px-4 py-2.5 bg-gray-100 rounded-lg">
-                                    <CalendarDays className="w-4 h-4 text-gray-600" />
+                                <div className="relative">
                                     <input
-                                        type="datetime-local"
-                                        value={selectedDueDate}
-                                        onChange={(e) => setSelectedDueDate(e.target.value)}
-                                        className="bg-transparent text-sm focus:outline-none"
+                                        type="text"
+                                        value={quickTaskInput}
+                                        onChange={(e) => setQuickTaskInput(e.target.value)}
+                                        onKeyDown={(e) => {
+                                            if (e.key === "Enter" && !e.shiftKey) {
+                                                e.preventDefault();
+                                                handleAddTask();
+                                            }
+                                        }}
+                                        placeholder="¿Qué tarea tienes para agregar?"
+                                        className="w-full px-5 py-4 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
                                     />
+
+                                    <textarea
+                                        value={descripcionInput}
+                                        onChange={(e) => setDescripcionInput(e.target.value)}
+                                        placeholder="Descripción de la tarea..."
+                                        className="w-full px-5 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:border-emerald-500"
+                                        maxLength="100"
+                                    />
+
+                                    <div
+                                        className={`absolute bottom-2 right-2 text-[10px] font-mono px-1.5 py-0.5 rounded shadow-sm border ${descripcionInput.length >= 90
+                                            ? "bg-red-50 text-red-600 border-red-100"
+                                            : "bg-gray-50 text-gray-400 border-gray-100"
+                                        }`}>
+                                        {100 - descripcionInput.length}
+                                    </div>
                                 </div>
 
-                                <div className="flex items-center gap-2 px-4 py-2.5 bg-gray-100 rounded-lg">
-                                    <Brain className="w-4 h-4 text-gray-600" />
-                                    <select
-                                        value={selectedMentalLoad ?? ""}
-                                        onChange={(e) =>
-                                            setSelectedMentalLoad(
-                                                e.target.value ? Number(e.target.value) : undefined
-                                            )
+                                {/* SECCIÓN DE SUBTAREAS DIRECTAS */}
+                                <div className="mt-3 px-2 space-y-2">
+                                    <div className="flex gap-2">
+                                        <input
+                                            type="text"
+                                            value={currentSubtaskInput}
+                                            onChange={(e) => setCurrentSubtaskInput(e.target.value)}
+                                            onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addSubtaskToTempList())}
+                                            placeholder="Añadir subtarea"
+                                            className="flex-1 text-sm bg-transparent border-b border-gray-200 focus:border-emerald-500 outline-none py-1"
+                                        />
+                                        <button onClick={addSubtaskToTempList} className="text-emerald-600 hover:bg-emerald-50 p-1 rounded-full transition-colors">
+                                            <Plus size={16} />
+                                        </button>
+                                    </div>
+
+                                    {/* Tags de subtareas agregadas */}
+                                    <div className="flex flex-wrap gap-2">
+                                        {tempSubtasks.map((sub, idx) => (
+                                            <span key={idx} className="flex items-center gap-1 bg-gray-100 text-gray-600 px-2 py-1 rounded-md text-[11px] font-medium border border-gray-200">
+                                                    {sub}
+                                                <X size={12} className="cursor-pointer hover:text-red-500" onClick={() => setTempSubtasks(tempSubtasks.filter((_, i) => i !== idx))} />
+                                                </span>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <div className="flex items-center gap-3 flex-wrap">
+
+                                    <div className="flex items-center gap-2 px-4 py-2.5 bg-gray-100 rounded-lg">
+                                        <CalendarDays className="w-4 h-4 text-gray-600"/>
+                                        <input
+                                            type="datetime-local"
+                                            value={selectedDueDate}
+                                            onChange={(e) => setSelectedDueDate(e.target.value)}
+                                            className="bg-transparent text-sm focus:outline-none"
+                                        />
+                                    </div>
+
+                                    {/* Selector Tipo de Tarea (Enum) */}
+                                    <div className="flex items-center gap-2 px-3 py-2 bg-gray-100 rounded-lg">
+                                        <Sparkles className="w-4 h-4 text-gray-600"/>
+                                        <select
+                                            value={selectedTipoTarea}
+                                            onChange={(e) => setSelectedTipoTarea(e.target.value)}
+                                            className="bg-transparent text-xs focus:outline-none"
+                                        >
+                                            <option value="EX">Examen</option>
+                                            <option value="QU">Quiz</option>
+                                            <option value="TA">Taller</option>
+                                            <option value="PR">Proyecto</option>
+                                            <option value="OT">Otro</option>
+                                        </select>
+                                    </div>
+
+                                    {/* Input de Curso */}
+                                    <div
+                                        className="flex items-center gap-2 px-3 py-2 bg-gray-100 rounded-lg flex-1 min-w-[120px]">
+                                        <input
+                                            type="text"
+                                            value={cursoInput}
+                                            onChange={(e) => setCursoInput(e.target.value)}
+                                            placeholder="Curso/Materia"
+                                            className="bg-transparent text-xs focus:outline-none w-full"
+                                        />
+                                    </div>
+
+                                    <div className="flex items-center gap-2 px-4 py-2.5 bg-gray-100 rounded-lg">
+                                        <Brain className="w-4 h-4 text-gray-600"/>
+                                        <select
+                                            value={selectedMentalLoad ?? ""}
+                                            onChange={(e) =>
+                                                setSelectedMentalLoad(
+                                                    e.target.value ? Number(e.target.value) : undefined
+                                                )
+                                            }
+                                            className="bg-transparent text-sm focus:outline-none"
+                                        >
+                                            <option value="">Carga Mental</option>
+                                            <option value="1">1 - Muy baja</option>
+                                            <option value="2">2 - Baja</option>
+                                            <option value="3">3 - Media</option>
+                                            <option value="4">4 - Alta</option>
+                                            <option value="5">5 - Muy alta</option>
+                                        </select>
+                                    </div>
+
+                                    <button
+                                        onClick={handleAddTask}
+                                        // Verificamos que todos los campos tengan contenido
+                                        disabled={
+                                            !quickTaskInput.trim() ||
+                                            !descripcionInput.trim() ||
+                                            !selectedDueDate ||
+                                            selectedMentalLoad === undefined
                                         }
-                                        className="bg-transparent text-sm focus:outline-none"
-                                    >
-                                        <option value="">Carga Mental</option>
-                                        <option value="1">1 - Muy baja</option>
-                                        <option value="2">2 - Baja</option>
-                                        <option value="3">3 - Media</option>
-                                        <option value="4">4 - Alta</option>
-                                        <option value="5">5 - Muy alta</option>
-                                    </select>
-                                </div>
-
-                                <button
-                                    onClick={handleAddTask}
-                                    // Verificamos que todos los campos tengan contenido
-                                    disabled={
-                                        !quickTaskInput.trim() ||
-                                        !descripcionInput.trim() ||
-                                        !selectedDueDate ||
-                                        selectedMentalLoad === undefined
-                                    }
-                                    className={`ml-auto px-6 py-2.5 rounded-lg transition-colors ${(!quickTaskInput.trim() || !descripcionInput.trim() || !selectedDueDate || selectedMentalLoad === undefined)
-                                        ? "bg-gray-300 cursor-not-allowed text-gray-500" // Estilo deshabilitado
-                                        : "bg-emerald-600 text-white hover:bg-emerald-700" // Estilo activo
+                                        className={`ml-auto px-6 py-2.5 rounded-lg transition-colors ${(!quickTaskInput.trim() || !descripcionInput.trim() || !selectedDueDate || selectedMentalLoad === undefined)
+                                            ? "bg-gray-300 cursor-not-allowed text-gray-500" // Estilo deshabilitado
+                                            : "bg-emerald-600 text-white hover:bg-emerald-700" // Estilo activo
                                         }`}
-                                >
-                                    Crear Tarea
-                                </button>
-
+                                    >
+                                        Crear Tarea
+                                    </button>
+                                </div>
                             </div>
                         </div>
-                    </div>
 
-                    {tareaMasCercana && (
-                        <div className="relative overflow-hidden bg-white border-2 border-emerald-100 rounded-2xl p-6 mt-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] ring-1 ring-emerald-500/10">
+                        {tareaMasCercana && (
+                            <div
+                                className="relative overflow-hidden bg-white border-2 border-emerald-100 rounded-2xl p-6 mt-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] ring-1 ring-emerald-500/10">
 
-                            {/* Decoración de fondo para resaltar */}
-                            <div className="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-emerald-50 rounded-full blur-3xl opacity-50" />
+                                {/* Decoración de fondo para resaltar */}
+                                <div
+                                    className="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-emerald-50 rounded-full blur-3xl opacity-50"/>
 
-                            <div className="relative">
-                                <div className="flex justify-between items-center mb-4">
-                                    <div className="flex items-center gap-2">
-                                        <span className="flex h-2 w-2 rounded-full bg-emerald-500 animate-ping" />
-                                        <span className="text-xs font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full">
+                                <div className="relative">
+                                    <div className="flex justify-between items-center mb-4">
+                                        <div className="flex items-center gap-2">
+                                            <span className="flex h-2 w-2 rounded-full bg-emerald-500 animate-ping"/>
+                                            <span
+                                                className="text-xs font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full">
                                             Prioridad Inmediata
                                         </span>
+                                        </div>
+
+                                        <div
+                                            className="flex items-center gap-1.5 text-xs font-medium text-emerald-600 bg-emerald-50 px-2 py-1 rounded-lg">
+                                            <span>Próximo cierre</span>
+                                        </div>
                                     </div>
 
-                                    <div className="flex items-center gap-1.5 text-xs font-medium text-emerald-600 bg-emerald-50 px-2 py-1 rounded-lg">
-                                        <span>Próximo cierre</span>
-                                    </div>
-                                </div>
+                                    <h3 className="text-xl font-semibold text-gray-900 mb-2 decoration-emerald-500/30 decoration-2">
+                                        {tareaMasCercana.nombre}
+                                    </h3>
 
-                                <h3 className="text-xl font-semibold text-gray-900 mb-2 decoration-emerald-500/30 decoration-2">
-                                    {tareaMasCercana.nombre}
-                                </h3>
-
-                                <div className="flex flex-wrap items-center gap-y-2 gap-x-4">
-                                    <div className="flex items-center gap-1.5 text-sm text-gray-500">
-                                        <p>Entrega: </p>
-                                        <CalendarDays className="w-4 h-4 text-emerald-500" />
-                                        <span className="font-medium text-gray-700">
+                                    <div className="flex flex-wrap items-center gap-y-2 gap-x-4">
+                                        <div className="flex items-center gap-1.5 text-sm text-gray-500">
+                                            <p>Entrega: </p>
+                                            <CalendarDays className="w-4 h-4 text-emerald-500"/>
+                                            <span className="font-medium text-gray-700">
                                             {tareaMasCercana.fecha_entrega
                                                 ? new Date(tareaMasCercana.fecha_entrega).toLocaleString([], {
                                                     day: '2-digit',
@@ -284,103 +382,106 @@ export function TodayView() {
                                                 })
                                                 : "Sin fecha de entrega"}
                                         </span>
+                                        </div>
+
+                                        {tareaMasCercana.carga_mental && (
+                                            <div className="flex items-center gap-1 text-sm text-amber-600">
+                                                <Brain className="w-4 h-4"/>
+                                                <span
+                                                    className="text-xs font-medium">Dificultad: Nivel {tareaMasCercana.carga_mental}</span>
+                                            </div>
+                                        )}
                                     </div>
 
-                                    {tareaMasCercana.carga_mental && (
-                                        <div className="flex items-center gap-1 text-sm text-amber-600">
-                                            <Brain className="w-4 h-4" />
-                                            <span className="text-xs font-medium">Dificultad: Nivel {tareaMasCercana.carga_mental}</span>
-                                        </div>
-                                    )}
-                                </div>
-
-                                <div className="mt-6">
-                                    <div className="flex justify-between items-center mb-2">
+                                    <div className="mt-6">
+                                        <div className="flex justify-between items-center mb-2">
                                         <span className="text-xs font-semibold text-emerald-700">
                                             Progreso de la tarea
                                         </span>
-                                        <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded">
+                                            <span
+                                                className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded">
                                             {progresoSubtareas}%
                                         </span>
-                                    </div>
+                                        </div>
 
-                                    {/* Contenedor de la barra */}
-                                    <div className="w-full bg-gray-100 h-2.5 rounded-full overflow-hidden border border-gray-50">
+                                        {/* Contenedor de la barra */}
                                         <div
-                                            className="bg-emerald-500 h-full rounded-full transition-all duration-700 ease-out shadow-[0_0_12px_rgba(16,185,129,0.3)]"
-                                            style={{ width: `${progresoSubtareas}%` }}
-                                        />
-                                    </div>
+                                            className="w-full bg-gray-100 h-2.5 rounded-full overflow-hidden border border-gray-50">
+                                            <div
+                                                className="bg-emerald-500 h-full rounded-full transition-all duration-700 ease-out shadow-[0_0_12px_rgba(16,185,129,0.3)]"
+                                                style={{width: `${progresoSubtareas}%`}}
+                                            />
+                                        </div>
 
-                                    <p className="text-[10px] text-gray-400 mt-2 text-right italic">
-                                        {completadas} de {totalSubtareas} subtareas finalizadas
-                                    </p>
+                                        <p className="text-[10px] text-gray-400 mt-2 text-right italic">
+                                            {completadas} de {totalSubtareas} subtareas finalizadas
+                                        </p>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    )}
-
-                    <div className="space-y-3 mt-6">
-
-                        {tasks.length === 0 && (
-                            <p className="text-gray-400 text-sm">
-                                No hay tareas todavía.
-                            </p>
                         )}
 
-                        {tasks
-                            .filter((t) => !t.parent && !t.parent_id)
-                            .map((tarea) => (
+                        <div className="space-y-3 mt-6">
 
-                                <TaskCard
-                                    descripcionInput={descripcionInput}
-                                    key={tarea.id}
-                                    tarea={tarea}
-                                    tasks={tasks}
-                                    setTasks={setTasks}
-                                    navigate={navigate}
-                                    API_URL={API_URL}
-                                />
+                            {tasks.length === 0 && (
+                                <p className="text-gray-400 text-sm">
+                                    No hay tareas todavía.
+                                </p>
+                            )}
 
-                            ))}
+                            {tasks
+                                .filter((t) => !t.parent && !t.parent_id)
+                                .map((tarea) => (
+
+                                    <TaskCard
+                                        descripcionInput={descripcionInput}
+                                        key={tarea.id}
+                                        tarea={tarea}
+                                        tasks={tasks}
+                                        setTasks={setTasks}
+                                        navigate={navigate}
+                                        API_URL={API_URL}
+                                    />
+
+                                ))}
+
+                        </div>
 
                     </div>
 
-                </div>
+                    {/* Timer */}
+                    <div className="lg:col-span-1">
+                        <div className="bg-white rounded-2xl border border-gray-200 p-8 shadow-sm">
 
-                {/* Timer */}
-                <div className="lg:col-span-1">
-                    <div className="bg-white rounded-2xl border border-gray-200 p-8 shadow-sm">
-
-                        <div className="text-center mb-6">
-                            <div className="text-5xl font-light mb-2">{formatTime(timeRemaining)}</div>
-                            <div className="text-sm text-gray-500">
-                                {timerRunning ? "En progreso" : "Pomodoro"}
+                            <div className="text-center mb-6">
+                                <div className="text-5xl font-light mb-2">{formatTime(timeRemaining)}</div>
+                                <div className="text-sm text-gray-500">
+                                    {timerRunning ? "En progreso" : "Pomodoro"}
+                                </div>
                             </div>
+
+                            <div className="flex gap-3">
+                                <button
+                                    onClick={() => setTimerRunning(!timerRunning)}
+                                    className="flex-1 py-3 bg-emerald-600 text-white rounded-xl flex items-center justify-center gap-2"
+                                >
+                                    {timerRunning ? <Pause className="w-5 h-5"/> : <Play className="w-5 h-5"/>}
+                                    {timerRunning ? "Pausar" : "Iniciar"}
+                                </button>
+
+                                <button
+                                    onClick={resetTimer}
+                                    className="px-4 py-3 bg-gray-100 rounded-xl"
+                                >
+                                    <RotateCcw className="w-5 h-5"/>
+                                </button>
+                            </div>
+
                         </div>
-
-                        <div className="flex gap-3">
-                            <button
-                                onClick={() => setTimerRunning(!timerRunning)}
-                                className="flex-1 py-3 bg-emerald-600 text-white rounded-xl flex items-center justify-center gap-2"
-                            >
-                                {timerRunning ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5" />}
-                                {timerRunning ? "Pausar" : "Iniciar"}
-                            </button>
-
-                            <button
-                                onClick={resetTimer}
-                                className="px-4 py-3 bg-gray-100 rounded-xl"
-                            >
-                                <RotateCcw className="w-5 h-5" />
-                            </button>
-                        </div>
-
                     </div>
-                </div>
 
+                </div>
             </div>
-        </div>
-    </main>
+        </main>
     );
 }
