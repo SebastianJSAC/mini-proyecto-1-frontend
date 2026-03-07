@@ -2,6 +2,7 @@ import { Play, Pause, RotateCcw, Sparkles, CalendarDays, Brain } from "lucide-re
 import { useState, useEffect } from "react";
 import TaskCard from "./TaskCard.jsx";
 import Swal from "sweetalert2";
+import { useSearchParams, useNavigate } from "react-router-dom";
 
 export function TodayView() {
     const API_URL = import.meta.env.VITE_API_URL?.replace(/\/$/, "");
@@ -17,6 +18,8 @@ export function TodayView() {
     const [descripcionInput, setDescripcionInput] = useState("");
 
     const [tasks, setTasks] = useState([]);
+    const [searchParams, setSearchParams] = useSearchParams();
+    const navigate = useNavigate();
 
     const obtenerTareas = async () => {
         try {
@@ -39,6 +42,9 @@ export function TodayView() {
 
     const handleAddTask = async () => {
         if (!quickTaskInput.trim()) return;
+
+        //Ruta crear
+        navigate("/hoy/crear");
 
         try {
             const response = await fetch(`${API_URL}/tareas/api/tareas/`, {
@@ -74,6 +80,8 @@ export function TodayView() {
                     timer: 4000,
                     timerProgressBar: true
                 });
+
+                setTimeout(() => navigate("/hoy"), 500);
             }
         } catch (error) {
             console.error("Error creando tarea:", error);
@@ -250,6 +258,7 @@ export function TodayView() {
                                     tarea={tarea}
                                     tasks={tasks}
                                     setTasks={setTasks}
+                                    navigate={navigate}
                                     API_URL={API_URL}
                                 />
 

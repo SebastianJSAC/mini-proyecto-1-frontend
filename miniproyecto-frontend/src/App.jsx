@@ -6,6 +6,12 @@ export default function App() {
         <BrowserRouter>
             <Routes>
                 <Route path='/hoy' element={<TodayView/>} index/>
+                <Route path="/hoy/crear" element={<TodayView />} />
+                <Route path="/hoy/editar/:id" element={<TodayView />} />
+                <Route path="/hoy/eliminar/:id" element={<TodayView />} />
+                <Route path="/hoy/restaurar/:id" element={<TodayView />} />
+                <Route path="/hoy/subtarea/:id" element={<TodayView />} />
+                <Route path="*" element={<Navigate to="/hoy" />} />
             </Routes>
         </BrowserRouter>
     );
