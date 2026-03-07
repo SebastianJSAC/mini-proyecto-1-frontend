@@ -157,7 +157,7 @@ export function TodayView() {
                                     <div className="flex items-center gap-2 px-4 py-2.5 bg-gray-100 rounded-lg">
                                         <CalendarDays className="w-4 h-4 text-gray-600"/>
                                         <input
-                                            type="date"
+                                            type="datetime-local"
                                             value={selectedDueDate}
                                             onChange={(e) => setSelectedDueDate(e.target.value)}
                                             className="bg-transparent text-sm focus:outline-none"
