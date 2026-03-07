@@ -319,6 +319,28 @@ export default function TaskCard({ tarea, setTasks, API_URL }) {
                     {tarea.nombre}
                 </h3>
 
+                {tarea.descripcion && (
+                    <p className="text-sm text-gray-500 mt-1">
+                        {tarea.descripcion}
+                    </p>
+                )}
+
+                <div className="flex gap-4 text-xs text-gray-400 mt-2">
+
+                    {tarea.fecha_entrega && (
+                        <span>
+                            {new Date(tarea.fecha_entrega).toLocaleDateString()}
+                        </span>
+                    )}
+
+                    {tarea.carga_mental && (
+                        <span>
+                            Carga {tarea.carga_mental}
+                        </span>
+                    )}
+
+                </div>
+
                 <button
                     onClick={handleDeleteTask}
                     className="text-red-500 hover:text-red-700"
