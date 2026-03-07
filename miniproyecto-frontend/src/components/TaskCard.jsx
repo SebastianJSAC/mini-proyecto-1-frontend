@@ -9,6 +9,7 @@ export default function TaskCard({tarea, setTasks, API_URL}) {
 
     const subtasks = tarea.subtareas || [];
     subtasks.filter(s => s.completada).length;
+
     const handleDeleteTask = async () => {
 
         const confirm = await Swal.fire({
