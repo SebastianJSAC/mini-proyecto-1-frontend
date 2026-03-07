@@ -300,7 +300,7 @@ export default function TaskCard({ tarea, tasks, setTasks, API_URL }) {
                                         : "bg-slate-100 text-slate-600"
                                     }`}
                             >
-                                {tarea.completada ? "Completada" : "○ Pendiente"}
+                                {sub.completada ? "Completada" : "○ Pendiente"}
                             </button>
 
                             <span className={`${sub.completada ? "line-through text-gray-400" : "text-gray-700"}`}>
