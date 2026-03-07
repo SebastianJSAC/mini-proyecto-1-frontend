@@ -1,19 +1,24 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Swal from "sweetalert2";
 import { Trash2, Edit2, Check, X, CalendarDays, Brain } from "lucide-react";
 
 export default function TaskCard({ tarea, setTasks, API_URL, navigate }) {
-    // --- NUEVOS ESTADOS PARA EDICIÓN ---
     const [isEditing, setIsEditing] = useState(false);
     const [editNombre, setEditNombre] = useState(tarea.nombre);
     const [editDescripcion, setEditDescripcion] = useState(tarea.descripcion || "");
     const [editCarga, setEditCarga] = useState(tarea.carga_mental || "");
     const [editFechaEntrega, setEditFechaEntrega] = useState(tarea.fecha_entrega ? tarea.fecha_entrega.slice(0, 16) : "");
-
+    const [editSubtareas, setEditSubtareas] = useState(tarea.subtareas || []);
     const [subtaskInput, setSubtaskInput] = useState("");
     const [open, setOpen] = useState(true);
 
     const subtasks = tarea.subtareas || [];
+
+    useEffect(() => {
+        if (isEditing) {
+            setEditSubtareas(tarea.subtareas || []);
+        }
+    }, [isEditing, tarea.subtareas]);
 
     const getMentalLoadConfig = (level) => {
         const configs = {
@@ -29,10 +34,10 @@ export default function TaskCard({ tarea, setTasks, API_URL, navigate }) {
     const handleUpdateTask = async () => {
         if (!editNombre.trim()) return;
 
-        //Ruta crear
         navigate(`/hoy/editar/${tarea.id}`);
 
         try {
+            // Actualizar Tarea Padre
             const response = await fetch(`${API_URL}/tareas/api/tareas/${tarea.id}/`, {
                 method: "PATCH",
                 headers: { "Content-Type": "application/json" },
@@ -45,29 +50,30 @@ export default function TaskCard({ tarea, setTasks, API_URL, navigate }) {
             });
 
             if (response.ok) {
-                const res = await response.json();
+                // Actualizar Subtareas (una por una)
+                const promesasSubtareas = editSubtareas.map(sub =>
+                    fetch(`${API_URL}/tareas/api/tareas/${sub.id}/`, {
+                        method: "PATCH",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ nombre: sub.nombre })
+                    }).then(r => r.json())
+                );
 
-                // Actualizamos el estado global en TodayView
+                await Promise.all(promesasSubtareas);
+
+                // Refrescar estado local
+                const res = await response.json();
                 setTasks(prev => prev.map(t =>
-                    t.id === tarea.id ? { ...t, ...res.data } : t
+                    t.id === tarea.id ? { ...t, ...res.data, subtareas: editSubtareas } : t
                 ));
 
                 setIsEditing(false);
-
-                Swal.fire({
-                    toast: true,
-                    position: "top-end",
-                    icon: "success",
-                    title: "Tarea actualizada",
-                    showConfirmButton: false,
-                    timer: 1500
-                });
-
-                setTimeout(() => navigate("/hoy"), 1500);
+                Swal.fire({ toast: true, position: "top-end", icon: "success", title: "Todo actualizado", timer: 1500 });
+                setTimeout(() => navigate("/hoy"), 1000);
             }
         } catch (error) {
-            console.error("Error al editar la tarea:", error);
-            await Swal.fire({ icon: "error", title: "Error", text: "No se pudo actualizar" });
+            console.error("Error:", error);
+            navigate("/hoy");
         }
     };
 
@@ -351,6 +357,24 @@ export default function TaskCard({ tarea, setTasks, API_URL, navigate }) {
                                 </button>
                             ))}
                         </div>
+                    </div>
+                    {/*EDITAR SUBTAREA*/}
+                    <div className="space-y-2 border-t pt-4 mt-2">
+                        <label className="text-xs font-bold text-gray-400 uppercase">Editar Subtareas:</label>
+                        {editSubtareas.map((sub, index) => (
+                            <div key={sub.id} className="flex gap-2">
+                                <input
+                                    type="text"
+                                    className="flex-1 px-2 py-1 text-sm border rounded bg-gray-50 focus:border-emerald-500 outline-none"
+                                    value={sub.nombre}
+                                    onChange={(e) => {
+                                        const nuevasSub = [...editSubtareas];
+                                        nuevasSub[index].nombre = e.target.value;
+                                        setEditSubtareas(nuevasSub);
+                                    }}
+                                />
+                            </div>
+                        ))}
                     </div>
                 </div>
             ) : (
