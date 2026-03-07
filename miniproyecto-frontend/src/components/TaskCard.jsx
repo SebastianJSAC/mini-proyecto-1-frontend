@@ -249,12 +249,15 @@ export default function TaskCard({ tarea, tasks, setTasks, API_URL }) {
 
             <div className="flex items-center gap-3">
 
-                <input
-                    type="checkbox"
-                    checked={tarea.completada || false}
-                    onChange={toggleComplete}
-                    className="w-5 h-5"
-                />
+                <button
+                    onClick={toggleComplete}
+                    className={`px-3 py-1 rounded-md text-xs font-bold transition-all ${tarea.completada
+                        ? "bg-green-100 text-green-700"
+                        : "bg-slate-100 text-slate-600"
+                        }`}
+                >
+                    {tarea.completada ? "Completada" : "○ Pendiente"}
+                </button>
 
                 <h3 className={`flex-1 text-lg font-medium ${tarea.completada ? "line-through text-gray-400" : "text-gray-900"
                     }`}>
@@ -290,12 +293,15 @@ export default function TaskCard({ tarea, tasks, setTasks, API_URL }) {
                             className="flex items-center gap-2 text-sm bg-gray-50 border border-gray-200 px-3 py-2 rounded-md"
                         >
 
-                            <input
-                                type="checkbox"
-                                checked={sub.completada || false}
-                                onChange={() => toggleSubtask(sub)}
-                                className="w-4 h-4 cursor-pointer"
-                            />
+                            <button
+                                onClick={() => toggleSubtask(sub)}
+                                className={`px-2 py-1 rounded-md text-xs font-bold transition-all ${sub.completada
+                                        ? "bg-green-100 text-green-700"
+                                        : "bg-slate-100 text-slate-600"
+                                    }`}
+                            >
+                                {sub.completada ? "✓" : "○"}
+                            </button>
 
                             <span className={`${sub.completada ? "line-through text-gray-400" : "text-gray-700"}`}>
                                 {sub.nombre}
