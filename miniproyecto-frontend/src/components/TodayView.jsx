@@ -213,7 +213,7 @@ export function TodayView() {
                                     disabled={!quickTaskInput.trim()}
                                     className="ml-auto px-6 py-2.5 bg-emerald-600 text-white rounded-lg"
                                 >
-                                    Agregar
+                                    Crear Actividad
                                 </button>
 
                             </div>

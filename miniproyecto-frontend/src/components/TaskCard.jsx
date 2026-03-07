@@ -8,6 +8,7 @@ export default function TaskCard({ tarea, setTasks, API_URL }) {
     const [editNombre, setEditNombre] = useState(tarea.nombre);
     const [editDescripcion, setEditDescripcion] = useState(tarea.descripcion || "");
     const [editCarga, setEditCarga] = useState(tarea.carga_mental || "");
+    const [editFechaEntrega, setEditFechaEntrega] = useState(tarea.fecha_entrega ? tarea.fecha_entrega.slice(0, 16) : "");
 
     // --- TUS ESTADOS ORIGINALES ---
     const [subtaskInput, setSubtaskInput] = useState("");
@@ -36,7 +37,8 @@ export default function TaskCard({ tarea, setTasks, API_URL }) {
                 body: JSON.stringify({
                     nombre: editNombre,
                     descripcion: editDescripcion,
-                    carga_mental: editCarga || null
+                    carga_mental: editCarga || null,
+                    fecha_entrega: editFechaEntrega ? new Date(editFechaEntrega).toISOString() : null
                 })
             });
 
@@ -200,10 +202,15 @@ export default function TaskCard({ tarea, setTasks, API_URL }) {
         } catch (error) { console.error(error); }
     };
 
+    const formatearFecha = (fechaStr) => {
+        if (!fechaStr) return "Sin fecha";
+        const fecha = new Date(fechaStr);
+        return fecha.toLocaleDateString() + " " + fecha.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    };
+
     return (
-        <div className={`bg-white border rounded-xl p-5 shadow-sm space-y-4 transition ${
-            isEditing ? "border-emerald-500 ring-2 ring-emerald-50" : "border-gray-200 hover:shadow-md"
-        }`}>
+        <div className={`bg-white border rounded-xl p-5 shadow-sm space-y-4 transition ${isEditing ? "border-emerald-500 ring-2 ring-emerald-50" : "border-gray-200 hover:shadow-md"
+            }`}>
             {isEditing ? (
                 <div className="space-y-4">
                     <div className="flex gap-2">
@@ -222,6 +229,16 @@ export default function TaskCard({ tarea, setTasks, API_URL }) {
                         onChange={(e) => setEditDescripcion(e.target.value)}
                     />
 
+                    <div className="flex flex-col">
+                        <label className="text-[10px] text-gray-500">Fecha de entrega:</label>
+                        <input
+                            type="datetime-local"
+                            value={editFechaEntrega}
+                            onChange={(e) => setEditFechaEntrega(e.target.value)}
+                            className="border p-1 rounded text-xs"
+                        />
+                    </div>
+
                     {/* SELECTOR DE CARGA MENTAL EN MODO EDICIÓN */}
                     <div className="flex flex-col gap-2">
                         <label className="text-xs font-semibold text-gray-500 flex items-center gap-1">
@@ -233,11 +250,10 @@ export default function TaskCard({ tarea, setTasks, API_URL }) {
                                     key={n}
                                     type="button"
                                     onClick={() => setEditCarga(n)}
-                                    className={`w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold border transition-all ${
-                                        Number(editCarga) === n
-                                            ? getMentalLoadConfig(n).color + " ring-2 ring-offset-2 ring-emerald-500"
-                                            : "bg-white text-gray-400 border-gray-200 hover:border-gray-300"
-                                    }`}
+                                    className={`w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold border transition-all ${Number(editCarga) === n
+                                        ? getMentalLoadConfig(n).color + " ring-2 ring-offset-2 ring-emerald-500"
+                                        : "bg-white text-gray-400 border-gray-200 hover:border-gray-300"
+                                        }`}
                                 >
                                     {n}
                                 </button>
@@ -268,13 +284,21 @@ export default function TaskCard({ tarea, setTasks, API_URL }) {
                             )}
                         </div>
                         {tarea.descripcion && <p className="text-sm text-gray-500 line-clamp-2">{tarea.descripcion}</p>}
+
+                        <div className="mt-2 flex items-center gap-1 text-xs text-emerald-600 font-medium">
+                            <CalendarDays className="w-3 h-3" />
+                            Entrega: {formatearFecha(tarea.fecha_entrega)}
+                        </div>
                     </div>
 
                     <div className="flex gap-1 flex-shrink-0">
+                        <span className="text-[10px] text-gray-400">
+                            Creado: {formatearFecha(tarea.created_at || tarea.fecha_creacion)}
+                        </span>
                         <button onClick={() => setIsEditing(true)} className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"><Edit2 size={16} /></button>
                         <button onClick={handleDeleteTask} className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"><Trash2 size={16} /></button>
                         <button onClick={() => setOpen(!open)} className="text-xs font-medium text-gray-400 hover:text-gray-600 px-2 py-1 transition-colors">
-                            {open ? "Cerrar" : "Abrir"}
+                            {open ? "Contraer" : "Expandir"}
                         </button>
                     </div>
                 </div>
@@ -301,7 +325,7 @@ export default function TaskCard({ tarea, setTasks, API_URL }) {
                             value={subtaskInput}
                             onChange={(e) => setSubtaskInput(e.target.value)}
                             onKeyDown={(e) => e.key === 'Enter' && handleAddSubtask()}
-                            placeholder="Añadir paso..."
+                            placeholder="Añadir subtarea..."
                             className="flex-1 px-3 py-1.5 border border-gray-200 rounded-lg text-sm outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
                         />
                         <button onClick={handleAddSubtask} className="px-4 py-1.5 bg-emerald-600 text-white rounded-lg text-sm font-bold hover:bg-emerald-700 transition-colors">+</button>
