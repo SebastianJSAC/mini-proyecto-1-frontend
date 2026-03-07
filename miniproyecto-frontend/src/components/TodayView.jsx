@@ -117,14 +117,17 @@ export function TodayView() {
 
     };
 
+    const tareasPrincipales = tasks.filter(t => t.parent === null);
+
+    const totalMisiones = tareasPrincipales.length;
+
     return (<main className="flex-1 overflow-auto"> <div className="max-w-7xl mx-auto px-8 py-8"> <div className="mb-8"> <h1 className="text-3xl font-light text-gray-900 mb-2">
-        Hola, {userName}. <span className="font-medium">Tienes _ misiones hoy.</span> </h1> <p className="text-base text-gray-500">Viernes, 6 de marzo de 2026</p> </div>
+        Hola, {userName}. <span className="font-medium">Tienes {totalMisiones} {totalMisiones === 1 ? "misión" : "misiones"}el dia de hoy.</span> </h1> <p className="text-base text-gray-500">Viernes, 6 de marzo de 2026</p> </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
 
             {/* Main Area */}
             <div className="lg:col-span-2 space-y-6">
-                <h2 className="text-xl font-medium text-gray-900 mb-6">Tu Power 3</h2>
 
                 {/* Quick Add */}
                 <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm mb-8">
