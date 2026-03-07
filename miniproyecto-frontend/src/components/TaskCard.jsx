@@ -254,6 +254,19 @@ export default function TaskCard({ descripcionInput, tarea, setTasks, API_URL, n
             });
 
             if (response.ok) {
+
+                if (!tarea.completada) {
+
+                    Swal.fire({
+                        toast: true,
+                        position: 'top-end',
+                        text: 'Tarea completada',
+                        showConfirmButton: false,
+                        icon: 'success'
+                    });
+
+                }
+
                 setTasks(prev => prev.map(t => {
                     if (t.id === tarea.id) {
                         // Si completamos el padre, completamos todas las subtareas localmente
