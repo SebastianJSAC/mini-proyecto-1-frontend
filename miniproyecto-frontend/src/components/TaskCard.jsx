@@ -94,22 +94,6 @@ export default function TaskCard({ tarea, tasks, setTasks, API_URL }) {
 
     };
 
-    //Función recursiva para actualizar una tarea en árbol
-    const actualizarRecursivo = (tareas, id, callback) => {
-        return tareas.map(t => {
-            if (t.id === id) return callback(t);
-
-            if (t.subtareas) {
-                return {
-                    ...t,
-                    subtareas: actualizarRecursivo(t.subtareas, id, callback)
-                };
-            }
-
-            return t;
-        });
-    };
-
     const toggleSubtask = async (sub) => {
 
         try {
@@ -153,27 +137,6 @@ export default function TaskCard({ tarea, tasks, setTasks, API_URL }) {
             console.error(error);
         }
 
-    };
-
-    const toggleCompletada = async () => {
-        try {
-            const response = await fetch(`${API_URL}/tareas/api/tareas/${tarea.id}/`, {
-                method: "PATCH",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ completada: !tarea.completada }),
-            });
-
-            if (response.ok) {
-                setTasks(prev =>
-                    actualizarRecursivo(prev, tarea.id, t => ({
-                        ...t,
-                        completada: !t.completada
-                    }))
-                );
-            }
-        } catch (error) {
-            console.error("Error al actualizar:", error);
-        }
     };
 
     const toggleComplete = async () => {
@@ -286,15 +249,12 @@ export default function TaskCard({ tarea, tasks, setTasks, API_URL }) {
 
             <div className="flex items-center gap-3">
 
-                <button
-                    onClick={toggleCompletada}
-                    className={`px-3 py-1 rounded-md text-xs font-bold transition-all ${tarea.completada
-                        ? "bg-green-100 text-green-700"
-                        : "bg-slate-100 text-slate-600"
-                        }`}
-                >
-                    {tarea.completada ? "Completada" : "○ Pendiente"}
-                </button>
+                <input
+                    type="checkbox"
+                    checked={tarea.completada || false}
+                    onChange={toggleComplete}
+                    className="w-5 h-5"
+                />
 
                 <h3 className={`flex-1 text-lg font-medium ${tarea.completada ? "line-through text-gray-400" : "text-gray-900"
                     }`}>
@@ -330,15 +290,12 @@ export default function TaskCard({ tarea, tasks, setTasks, API_URL }) {
                             className="flex items-center gap-2 text-sm bg-gray-50 border border-gray-200 px-3 py-2 rounded-md"
                         >
 
-                            <button
-                                onClick={toggleCompletada}
-                                className={`px-3 py-1 rounded-md text-xs font-bold transition-all ${sub.completada
-                                        ? "bg-green-100 text-green-700"
-                                        : "bg-slate-100 text-slate-600"
-                                    }`}
-                            >
-                                {sub.completada ? "Completada" : "○ Pendiente"}
-                            </button>
+                            <input
+                                type="checkbox"
+                                checked={sub.completada || false}
+                                onChange={() => toggleSubtask(sub)}
+                                className="w-4 h-4 cursor-pointer"
+                            />
 
                             <span className={`${sub.completada ? "line-through text-gray-400" : "text-gray-700"}`}>
                                 {sub.nombre}
