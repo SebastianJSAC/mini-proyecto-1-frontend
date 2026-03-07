@@ -260,10 +260,10 @@ export default function TaskCard({ tarea, setTasks, API_URL }) {
                             {/* INDICADOR VISUAL DE CARGA MENTAL (CÍRCULO) */}
                             {tarea.carga_mental && (
                                 <span
-                                    className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold border flex-shrink-0 ${getMentalLoadConfig(tarea.carga_mental).color}`}
+                                    className={`w-10 h-5 rounded-full flex items-center justify-center text-[8px] font-bold border flex-shrink-0 ${getMentalLoadConfig(tarea.carga_mental).color}`}
                                     title={`Carga mental: ${getMentalLoadConfig(tarea.carga_mental).label}`}
                                 >
-                                    {tarea.carga_mental}
+                                    {getMentalLoadConfig(tarea.carga_mental).label}
                                 </span>
                             )}
                         </div>
