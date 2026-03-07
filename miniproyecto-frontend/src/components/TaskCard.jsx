@@ -26,11 +26,14 @@ export default function TaskCard({tarea, setTasks, API_URL}) {
 
         const deletedTask = tarea;
 
+        // Guardamos una copia profunda de la tarea y sus subtareas antes de borrar
+        const taskBackup = { ...tarea };
+        const subtasksBackup = [...(tarea.subtareas || [])];
+
         // eliminar de UI inmediatamente
         setTasks(prev => prev.filter(t => t.id !== tarea.id));
 
         try {
-
             await fetch(`${API_URL}/tareas/api/tareas/${tarea.id}/`, {
                 method: "DELETE"
             });
@@ -47,27 +50,51 @@ export default function TaskCard({tarea, setTasks, API_URL}) {
             });
 
             if (result.isConfirmed) {
-
                 const response = await fetch(`${API_URL}/tareas/api/tareas/`, {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json"
                     },
                     body: JSON.stringify({
-                        nombre: deletedTask.nombre,
-                        parent: deletedTask.parent || null
+                        nombre: taskBackup.nombre,
+                        completada: taskBackup.completada, //Mantener estado original
+                        parent: taskBackup.parent || null
                     })
                 });
                 const res = await response.json();
 
                 if (response.ok) {
-                    setTasks(prev => [...prev, res.data]);
+                    const newTask = res.data;
+                    const restoredSubtasks = [];
+
+                    //Restaurar cada subtarea vinculándola al nuevo ID del padre
+                    if (subtasksBackup.length > 0) {
+                        const subtaskPromises = subtasksBackup.map(sub =>
+                            fetch(`${API_URL}/tareas/api/tareas/`, {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({
+                                    nombre: sub.nombre,
+                                    completada: sub.completada,
+                                    parent: newTask.id // El nuevo ID generado por la DB
+                                })
+                            }).then(r => r.json())
+                        );
+
+                        const subResults = await Promise.all(subtaskPromises);
+                        subResults.forEach(r => {
+                            if (r.data) restoredSubtasks.push(r.data);
+                        });
+                    }
+
+                    //Actualizar la UI con la tarea y sus subtareas
+                    setTasks(prev => [...prev, { ...newTask, subtareas: restoredSubtasks }]);
 
                     await Swal.fire({
                         toast: true,
                         position: "top-end",
                         icon: "success",
-                        title: "Tarea restaurada",
+                        title: "Tarea y subtareas restauradas",
                         showConfirmButton: false,
                         timer: 1500
                     });
