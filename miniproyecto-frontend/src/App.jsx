@@ -2,6 +2,7 @@ import {TodayView} from "./components/TodayView.jsx";
 import {BrowserRouter, Routes, Route, Navigate} from "react-router-dom";
 import Login from "./components/Login.jsx";
 import Registro from "./components/Registro.jsx";
+import Layout from "./components/layout/Layout.jsx"; // Importamos el layout
 
 export default function App() {
 
@@ -14,14 +15,18 @@ export default function App() {
             <Routes>
                 <Route path="/login" element={<Login />} />
                 <Route path="/registro" element={<Registro />} />
-                <Route path="*" element={<Navigate to="/login" />} index/>
-                <Route path='/hoy' element={<PrivateRoute><TodayView /></PrivateRoute>} />
-                <Route path="/hoy/crear" element={<PrivateRoute><TodayView /></PrivateRoute>} />
-                <Route path="/hoy/editar/:id" element={<PrivateRoute><TodayView /></PrivateRoute>} />
-                <Route path="/hoy/eliminar/:id" element={<PrivateRoute><TodayView /></PrivateRoute>} />
-                <Route path="/hoy/restaurar/:id" element={<PrivateRoute><TodayView /></PrivateRoute>} />
-                <Route path="/hoy/subtarea/:id" element={<PrivateRoute><TodayView /></PrivateRoute>} />
-                <Route path="*" element={<Navigate to="/hoy" />} />
+
+                {/* Rutas con Layout */}
+                <Route path="/hoy" element={<PrivateRoute><Layout /></PrivateRoute>}>
+                    <Route index element={<TodayView />} />
+                    <Route path="crear" element={<TodayView />} />
+                    <Route path="editar/:id" element={<TodayView />} />
+                    <Route path="eliminar/:id" element={<TodayView />} />
+                    <Route path="restaurar/:id" element={<TodayView />} />
+                    <Route path="subtarea/:id" element={<TodayView />} />
+                </Route>
+
+                <Route path="*" element={<Navigate to="/login" />} />
             </Routes>
         </BrowserRouter>
     );
