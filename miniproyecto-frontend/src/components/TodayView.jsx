@@ -28,8 +28,14 @@ export function TodayView() {
     const [currentSubtaskInput, setCurrentSubtaskInput] = useState("");
 
     const obtenerTareas = async () => {
+        const token = localStorage.getItem("token");
         try {
-            const response = await fetch(`${API_URL}/tareas/api/tareas/`);
+            const response = await fetch(`${API_URL}/tareas/api/tareas/`, {
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                }
+            });
             const data = await response.json();
 
             console.log("Tareas recibidas desde la API:", data);
@@ -54,6 +60,7 @@ export function TodayView() {
 
     const handleAddTask = async () => {
         if (!quickTaskInput.trim()) return;
+        const token = localStorage.getItem("token");
 
         //Ruta crear
         navigate("/hoy/crear");
@@ -63,6 +70,7 @@ export function TodayView() {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
                 },
                 body: JSON.stringify({
                     nombre: quickTaskInput,
@@ -84,7 +92,10 @@ export function TodayView() {
                     const promesas = tempSubtasks.map(subNombre =>
                         fetch(`${API_URL}/tareas/api/tareas/`, {
                             method: "POST",
-                            headers: {"Content-Type": "application/json"},
+                            headers: {
+                                "Content-Type": "application/json",
+                                "Authorization": `Bearer ${token}`
+                            },
                             body: JSON.stringify({
                                 nombre: subNombre,
                                 parent: tareaPadre.id

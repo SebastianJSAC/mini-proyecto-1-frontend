@@ -65,6 +65,7 @@ export default function TaskCard({descripcionInput, tarea, setTasks, API_URL, na
 
     const handleUpdateTask = async () => {
         if (!editNombre.trim()) return;
+        const token = localStorage.getItem("token");
 
         navigate(`/hoy/editar/${tarea.id}`);
 
@@ -72,7 +73,10 @@ export default function TaskCard({descripcionInput, tarea, setTasks, API_URL, na
             // Actualizar Tarea Padre
             const response = await fetch(`${API_URL}/tareas/api/tareas/${tarea.id}/`, {
                 method: "PATCH",
-                headers: {"Content-Type": "application/json"},
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                },
                 body: JSON.stringify({
                     nombre: editNombre,
                     descripcion: editDescripcion,
@@ -88,7 +92,10 @@ export default function TaskCard({descripcionInput, tarea, setTasks, API_URL, na
                 const promesasSubtareas = editSubtareas.map(sub =>
                     fetch(`${API_URL}/tareas/api/tareas/${sub.id}/`, {
                         method: "PATCH",
-                        headers: {"Content-Type": "application/json"},
+                        headers: {
+                            "Content-Type": "application/json",
+                            "Authorization": `Bearer ${token}`
+                        },
                         body: JSON.stringify({nombre: sub.nombre})
                     }).then(r => r.json())
                 );
@@ -121,6 +128,7 @@ export default function TaskCard({descripcionInput, tarea, setTasks, API_URL, na
     const handleDeleteTask = async () => {
         //Ruta crear
         navigate(`/hoy/eliminar/${tarea.id}`);
+        const token = localStorage.getItem("token");
 
         const confirm = await Swal.fire({
             title: "Eliminar tarea",
@@ -144,7 +152,11 @@ export default function TaskCard({descripcionInput, tarea, setTasks, API_URL, na
 
         try {
             const response = await fetch(`${API_URL}/tareas/api/tareas/${tarea.id}/`, {
-                method: "DELETE"
+                method: "DELETE",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`,
+                },
             });
 
             const result = await Swal.fire({
@@ -164,7 +176,10 @@ export default function TaskCard({descripcionInput, tarea, setTasks, API_URL, na
 
                 const restoreResponse = await fetch(`${API_URL}/tareas/api/tareas/`, {
                     method: "POST",
-                    headers: {"Content-Type": "application/json"},
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${token}`
+                    },
                     body: JSON.stringify({
                         nombre: taskBackup.nombre,
                         completada: taskBackup.completada,
@@ -186,7 +201,10 @@ export default function TaskCard({descripcionInput, tarea, setTasks, API_URL, na
                         const subtaskPromises = subtasksBackup.map(sub =>
                             fetch(`${API_URL}/tareas/api/tareas/`, {
                                 method: "POST",
-                                headers: {"Content-Type": "application/json"},
+                                headers: {
+                                    "Content-Type": "application/json",
+                                    "Authorization": `Bearer ${token}`
+                                },
                                 body: JSON.stringify({
                                     nombre: sub.nombre,
                                     completada: sub.completada,
@@ -214,10 +232,14 @@ export default function TaskCard({descripcionInput, tarea, setTasks, API_URL, na
 
     const toggleSubtask = async (sub) => {
         const nuevoEstadoSubtarea = !sub.completada;
+        const token = localStorage.getItem("token");
         try {
             const response = await fetch(`${API_URL}/tareas/api/tareas/${sub.id}/`, {
                 method: "PATCH",
-                headers: {"Content-Type": "application/json"},
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                },
                 body: JSON.stringify({completada: nuevoEstadoSubtarea})
             });
             if (response.ok) {
@@ -270,6 +292,8 @@ export default function TaskCard({descripcionInput, tarea, setTasks, API_URL, na
 
     const toggleComplete = async () => {
         const nuevoEstadoPadre = !tarea.completada;
+        const token = localStorage.getItem("token");
+
 
         const confirm = await Swal.fire({
             title: nuevoEstadoPadre ? "¿Marcar tarea como completada?" : "¿Reabrir tarea?",
@@ -286,7 +310,10 @@ export default function TaskCard({descripcionInput, tarea, setTasks, API_URL, na
         try {
             const response = await fetch(`${API_URL}/tareas/api/tareas/${tarea.id}/`, {
                 method: "PATCH",
-                headers: {"Content-Type": "application/json"},
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                },
                 body: JSON.stringify({completada: nuevoEstadoPadre})
             });
 
@@ -337,6 +364,7 @@ export default function TaskCard({descripcionInput, tarea, setTasks, API_URL, na
 
     const handleAddSubtask = async () => {
         if (!subtaskInput.trim()) return;
+        const token = localStorage.getItem("token");
 
         //Ruta crear
         navigate(`/hoy/subtarea/${tarea.id}`);
@@ -344,7 +372,10 @@ export default function TaskCard({descripcionInput, tarea, setTasks, API_URL, na
         try {
             const response = await fetch(`${API_URL}/tareas/api/tareas/`, {
                 method: "POST",
-                headers: {"Content-Type": "application/json"},
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                },
                 body: JSON.stringify({nombre: subtaskInput, parent: tarea.id})
             });
             const res = await response.json();
