@@ -2,7 +2,8 @@ import {TodayView} from "./components/TodayView.jsx";
 import {BrowserRouter, Routes, Route, Navigate} from "react-router-dom";
 import Login from "./components/Login.jsx";
 import Registro from "./components/Registro.jsx";
-import Layout from "./components/layout/Layout.jsx"; // Importamos el layout
+import Layout from "./components/layout/Layout.jsx";
+import {TaskView} from "./components/taskCard/TaskView.jsx";
 
 export default function App() {
 
@@ -25,6 +26,7 @@ export default function App() {
                     <Route path="restaurar/:id" element={<TodayView />} />
                     <Route path="subtarea/:id" element={<TodayView />} />
                 </Route>
+
 
                 <Route path="*" element={<Navigate to="/login" />} />
             </Routes>
