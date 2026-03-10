@@ -38,7 +38,7 @@ export default function Layout() {
                             Mis Tareas
                         </Link>
 
-                        <Link
+                        {/*<Link
                             to="/hoy/crear"
                             className={`flex items-center gap-2 text-sm font-medium transition-colors ${
                                 location.pathname === '/hoy/crear'
@@ -48,7 +48,7 @@ export default function Layout() {
                         >
                             <PlusCircle size={18} />
                             Nueva Tarea
-                        </Link>
+                        </Link>*/}
 
                         {/* Logout */}
                         <button
