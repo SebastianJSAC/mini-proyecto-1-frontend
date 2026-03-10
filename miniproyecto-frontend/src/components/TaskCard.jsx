@@ -49,7 +49,7 @@ export default function TaskCard({tarea, setTasks, API_URL, navigate}) {
         return fecha.toLocaleDateString() + " " + fecha.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
     };
 
-    // --- LÓGICA DE API ---
+
     const handleUpdateTask = async () => {
         const token = localStorage.getItem("token");
         navigate(`/hoy/editar/${tarea.id}`);
@@ -131,16 +131,64 @@ export default function TaskCard({tarea, setTasks, API_URL, navigate}) {
             });
 
             if (result.isConfirmed) {
-                // Lógica de restauración simplificada
+
+                //Restaurar tarea padre
                 const restoreRes = await fetch(`${API_URL}/tareas/api/tareas/`, {
                     method: "POST",
-                    headers: {"Content-Type": "application/json", "Authorization": `Bearer ${token}`},
-                    body: JSON.stringify({...backup, id: undefined, subtareas: undefined})
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        nombre: backup.nombre,
+                        descripcion: backup.descripcion,
+                        fecha_entrega: backup.fecha_entrega,
+                        carga_mental: backup.carga_mental,
+                        tipo_tarea: backup.tipo_tarea,
+                        curso: backup.curso
+                    })
                 });
-                if (restoreRes.ok) {
-                    const newT = (await restoreRes.json()).data;
-                    setTasks(prev => [...prev, {...newT, subtareas: []}]); // Simplificado para el ejemplo
+
+                if (!restoreRes.ok) return;
+
+                const newT = (await restoreRes.json()).data;
+
+                let nuevasSubtareas = [];
+
+                //Restaurar subtareas
+                if (backup.subtareas?.length) {
+
+                    const responses = await Promise.all(
+                        backup.subtareas.map(sub =>
+                            fetch(`${API_URL}/tareas/api/tareas/`, {
+                                method: "POST",
+                                headers: {
+                                    "Content-Type": "application/json",
+                                    "Authorization": `Bearer ${token}`
+                                },
+                                body: JSON.stringify({
+                                    nombre: sub.nombre,
+                                    parent: newT.id
+                                })
+                            })
+                        )
+                    );
+
+                    nuevasSubtareas = await Promise.all(
+                        responses.map(r => r.json())
+                    );
+
+                    nuevasSubtareas = nuevasSubtareas.map(r => r.data || r);
                 }
+
+                //Actualizar estado
+                setTasks(prev => [
+                    ...prev,
+                    {
+                        ...newT,
+                        subtareas: nuevasSubtareas
+                    }
+                ]);
             }
         } catch (e) {
             setTasks(prev => [...prev, tarea]);

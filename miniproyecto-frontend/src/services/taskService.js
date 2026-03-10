@@ -10,8 +10,6 @@ export const obtenerTareas = async (API_URL) => {
             }
         });
 
-        console.log(response);
-
         if(!response.ok){
             throw new Error("Error obteniendo tareas");
         }

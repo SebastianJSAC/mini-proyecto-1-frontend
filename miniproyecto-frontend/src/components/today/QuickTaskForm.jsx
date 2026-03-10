@@ -36,11 +36,9 @@ export default function QuickTaskForm({API_URL, obtenerTareas, navigate}) {
 
         const token = localStorage.getItem("token");
 
-        // 👇 SE MANTIENE EXACTAMENTE COMO PEDISTE
         navigate("/hoy/crear");
 
         try {
-
             const response = await fetch(`${API_URL}/tareas/api/tareas/`, {
                 method: "POST",
                 headers: {
@@ -92,6 +90,8 @@ export default function QuickTaskForm({API_URL, obtenerTareas, navigate}) {
                 setSelectedTipoTarea("OT");
                 setTempSubtasks([]);
 
+                navigate("/hoy");
+
                 await Swal.fire({
                     toast: true,
                     position: "top-end",
@@ -102,7 +102,6 @@ export default function QuickTaskForm({API_URL, obtenerTareas, navigate}) {
                     timerProgressBar: true
                 });
 
-                setTimeout(() => navigate("/hoy"), 500);
             }
 
         } catch (error) {

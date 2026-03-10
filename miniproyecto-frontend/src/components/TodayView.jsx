@@ -1,5 +1,5 @@
 import {useState, useEffect} from "react";
-import {useSearchParams, useNavigate} from "react-router-dom";
+import {useNavigate} from "react-router-dom";
 import QuickTaskForm from "./today/QuickTaskForm.jsx";
 import PriorityTask from "./today/PriorityTask.jsx";
 import PomodoroTimer from "./today/PomodoroTimer.jsx";
@@ -9,43 +9,9 @@ export function TodayView() {
 
     const API_URL = import.meta.env.VITE_API_URL?.replace(/\/$/, "");
     const navigate = useNavigate();
-    const [searchParams] = useSearchParams();
 
     const [tasks, setTasks] = useState([]);
 
-    const obtenerUsers = async () => {
-        const token = localStorage.getItem("token");
-
-        if (!token) {
-            console.error("No hay token de autenticación");
-            return;
-        }
-
-        try {
-            const response = await fetch(`${API_URL}/tareas/api/users/`, {
-                method: 'GET',
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${token}`
-                }
-            });
-
-            if (!response.ok) {
-                throw new Error(`Error ${response.status}: ${response.statusText}`);
-            }
-
-            const data = await response.json();
-
-            console.log("Usuarios obtenidos:", data);
-            // Aquí ya puedes usar los datos, por ejemplo:
-            // setUsers(data);  ← si usas React con useState
-            return data;
-
-        } catch (err) {
-            console.error("Error cargando usuarios:", err);
-            // Opcional: mostrar alerta al usuario
-        }
-    }
 
     useEffect(() => {
         const cargar = async () => {
