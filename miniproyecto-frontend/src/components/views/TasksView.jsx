@@ -1,9 +1,9 @@
 import {useState, useEffect} from "react";
 import {useNavigate} from "react-router-dom";
-import PriorityTask from "./today/PriorityTask.jsx";
-import TaskList from "./today/TaskList.jsx";
-import PomodoroTimer from "./today/PomodoroTimer.jsx";
-import {obtenerTareas} from "../services/taskService.js";
+import PriorityTask from "../today/PriorityTask.jsx";
+import TaskList from "../today/TaskList.jsx";
+import PomodoroTimer from "../today/PomodoroTimer.jsx";
+import {obtenerTareas} from "../../services/taskService.js";
 
 export default function TasksView() {
 
@@ -47,23 +47,17 @@ export default function TasksView() {
 
     return (
         <main className="flex-1 overflow-auto">
-
             <div className="max-w-7xl mx-auto px-8 py-8">
-
                 <div className="mb-8">
-
                     <h1 className="text-3xl font-light text-gray-900 mb-2">
                         Mis tareas ({totalMisiones})
                     </h1>
 
                     <p className="text-gray-500">{hoy}</p>
-
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-
                     <div className="lg:col-span-2 space-y-6">
-
                         {tareaMasCercana && (
                             <PriorityTask tarea={tareaMasCercana}/>
                         )}
@@ -74,15 +68,11 @@ export default function TasksView() {
                             navigate={navigate}
                             API_URL={API_URL}
                         />
-
                     </div>
 
                     <PomodoroTimer/>
-
                 </div>
-
             </div>
-
         </main>
     );
 }

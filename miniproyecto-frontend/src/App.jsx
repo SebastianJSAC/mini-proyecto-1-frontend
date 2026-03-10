@@ -1,9 +1,9 @@
-import {TodayView} from "./components/TodayView.jsx";
+import {TodayView} from "./components/views/TodayView.jsx";
 import {BrowserRouter, Routes, Route, Navigate} from "react-router-dom";
 import Login from "./components/Login.jsx";
 import Registro from "./components/Registro.jsx";
 import Layout from "./components/layout/Layout.jsx";
-import TasksView from "./components/TaskView.jsx";
+import TasksView from "./components/views/TasksView.jsx";
 import CreateTaskView from "./components/CreateTaskView.jsx";
 
 export default function App() {

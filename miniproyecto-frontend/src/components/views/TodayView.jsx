@@ -1,9 +1,9 @@
 import {useState, useEffect} from "react";
 import {useNavigate} from "react-router-dom";
-import QuickTaskForm from "./today/QuickTaskForm.jsx";
-import PriorityTask from "./today/PriorityTask.jsx";
-import PomodoroTimer from "./today/PomodoroTimer.jsx";
-import {obtenerTareas} from "../services/taskService.js";
+import QuickTaskForm from "../today/QuickTaskForm.jsx";
+import PriorityTask from "../today/PriorityTask.jsx";
+import PomodoroTimer from "../today/PomodoroTimer.jsx";
+import {obtenerTareas} from "../../services/taskService.js";
 
 export function TodayView() {
 
