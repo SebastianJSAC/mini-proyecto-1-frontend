@@ -1,4 +1,4 @@
-import QuickTaskForm from "./today/QuickTaskForm.jsx";
+import QuickTaskForm from "../today/QuickTaskForm.jsx";
 import { useNavigate } from "react-router-dom";
 
 
