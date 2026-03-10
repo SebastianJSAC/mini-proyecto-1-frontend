@@ -89,8 +89,10 @@ export default function TasksView() {
 
             {/* Modal QuickTaskForm */}
             {showQuickTaskModal && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-                    <div className="bg-white rounded-2xl p-6 w-full max-w-lg relative shadow-lg">
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-2xl p-8 w-full max-w-4xl overflow-auto relative shadow-xl">
+
+                        {/* Botón de cerrar */}
                         <button
                             onClick={() => setShowQuickTaskModal(false)}
                             className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
@@ -98,6 +100,7 @@ export default function TasksView() {
                             <X size={24} />
                         </button>
 
+                        {/* Formulario */}
                         <QuickTaskForm
                             API_URL={API_URL}
                             obtenerTareas={async () => {
