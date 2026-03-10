@@ -82,7 +82,7 @@ export default function QuickTaskForm({API_URL, obtenerTareas, navigate}) {
                     await Promise.all(promesas);
                 }
 
-                await obtenerTareas();
+                await obtenerTareas(API_URL);
 
                 setQuickTaskInput("");
                 setDescripcionInput("");

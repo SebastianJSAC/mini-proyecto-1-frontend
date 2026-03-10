@@ -2,8 +2,8 @@ import {useState, useEffect} from "react";
 import {useSearchParams, useNavigate} from "react-router-dom";
 import QuickTaskForm from "./today/QuickTaskForm.jsx";
 import PriorityTask from "./today/PriorityTask.jsx";
-import TaskList from "./today/TaskList.jsx";
 import PomodoroTimer from "./today/PomodoroTimer.jsx";
+import {obtenerTareas} from "../services/taskService.js";
 
 export function TodayView() {
 
@@ -13,30 +13,50 @@ export function TodayView() {
 
     const [tasks, setTasks] = useState([]);
 
-    const obtenerTareas = async () => {
+    const obtenerUsers = async () => {
         const token = localStorage.getItem("token");
 
+        if (!token) {
+            console.error("No hay token de autenticación");
+            return;
+        }
+
         try {
-            const response = await fetch(`${API_URL}/tareas/api/tareas/`, {
-                headers:{
-                    "Content-Type":"application/json",
-                    "Authorization":`Bearer ${token}`
+            const response = await fetch(`${API_URL}/tareas/api/users/`, {
+                method: 'GET',
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
                 }
             });
 
-            const data = await response.json();
-
-            if(Array.isArray(data)){
-                setTasks(data);
+            if (!response.ok) {
+                throw new Error(`Error ${response.status}: ${response.statusText}`);
             }
 
-        } catch (error) {
-            console.error("Error cargando tareas:", error);
+            const data = await response.json();
+
+            console.log("Usuarios obtenidos:", data);
+            // Aquí ya puedes usar los datos, por ejemplo:
+            // setUsers(data);  ← si usas React con useState
+            return data;
+
+        } catch (err) {
+            console.error("Error cargando usuarios:", err);
+            // Opcional: mostrar alerta al usuario
         }
-    };
+    }
 
     useEffect(() => {
-        obtenerTareas();
+        const cargar = async () => {
+            const data = await obtenerTareas(API_URL);
+
+            if (Array.isArray(data)) {
+                setTasks(data);
+            }
+        };
+
+        cargar();
     }, []);
 
     const tareasPendientes = tasks.filter(
@@ -45,19 +65,19 @@ export function TodayView() {
 
     const totalMisiones = tareasPendientes.length;
 
-    const tareasPendientesOrdenadas = tareasPendientes.sort((a,b)=>{
-        if(!a.fecha_entrega) return 1;
-        if(!b.fecha_entrega) return -1;
+    const tareasPendientesOrdenadas = tareasPendientes.sort((a, b) => {
+        if (!a.fecha_entrega) return 1;
+        if (!b.fecha_entrega) return -1;
         return new Date(a.fecha_entrega) - new Date(b.fecha_entrega);
     });
 
     const tareaMasCercana = tareasPendientesOrdenadas[0];
 
-    const hoy = new Date().toLocaleDateString("es-ES",{
-        weekday:"long",
-        year:"numeric",
-        month:"long",
-        day:"numeric"
+    const hoy = new Date().toLocaleDateString("es-ES", {
+        weekday: "long",
+        year: "numeric",
+        month: "long",
+        day: "numeric"
     });
 
     const userName = "María";
@@ -85,20 +105,16 @@ export function TodayView() {
 
                         <QuickTaskForm
                             API_URL={API_URL}
-                            obtenerTareas={obtenerTareas}
+                            obtenerTareas={async () => {
+                                const data = await obtenerTareas(API_URL);
+                                setTasks(data);
+                            }}
                             navigate={navigate}
                         />
 
                         {tareaMasCercana && (
                             <PriorityTask tarea={tareaMasCercana}/>
                         )}
-
-                        <TaskList
-                            tasks={tasks}
-                            setTasks={setTasks}
-                            navigate={navigate}
-                            API_URL={API_URL}
-                        />
 
                     </div>
 
