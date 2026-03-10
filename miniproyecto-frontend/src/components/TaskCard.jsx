@@ -3,8 +3,9 @@ import Swal from "sweetalert2";
 import {SubtaskSection} from "./taskCard/SubTaskSection.jsx";
 import {TaskView} from "./taskCard/TaskView.jsx";
 import {TaskEditForm} from "./taskCard/TaskEditForm.jsx";
+import {actualizarTarea, eliminarTarea, crearTarea} from "../services/taskService";
 
-export default function TaskCard({tarea, setTasks, API_URL, navigate}) {
+export default function TaskCard({tarea, setTasks, API_URL}) {
     const [isEditing, setIsEditing] = useState(false);
     const [open, setOpen] = useState(true);
     const [subtaskInput, setSubtaskInput] = useState("");
@@ -51,58 +52,45 @@ export default function TaskCard({tarea, setTasks, API_URL, navigate}) {
 
 
     const handleUpdateTask = async () => {
-        const token = localStorage.getItem("token");
-        navigate(`/hoy/editar/${tarea.id}`);
-
         try {
-            const response = await fetch(`${API_URL}/tareas/api/tareas/${tarea.id}/`, {
-                method: "PATCH",
-                headers: {"Content-Type": "application/json", "Authorization": `Bearer ${token}`},
-                body: JSON.stringify({
-                    nombre: editData.nombre,
-                    descripcion: editData.descripcion,
-                    carga_mental: editData.carga_mental || null,
-                    fecha_entrega: editData.fecha_entrega ? new Date(editData.fecha_entrega).toISOString() : null,
-                    tipo_tarea: editData.tipo_tarea,
-                    curso: editData.curso
-                })
+
+            const res = await actualizarTarea(API_URL, tarea.id, {
+                nombre: editData.nombre,
+                descripcion: editData.descripcion,
+                carga_mental: editData.carga_mental || null,
+                fecha_entrega: editData.fecha_entrega
+                    ? new Date(editData.fecha_entrega).toISOString()
+                    : null,
+                tipo_tarea: editData.tipo_tarea,
+                curso: editData.curso
             });
 
-            if (response.ok) {
-                const promesasSubtareas = editData.subtareas.map(sub =>
-                    fetch(`${API_URL}/tareas/api/tareas/${sub.id}/`, {
-                        method: "PATCH",
-                        headers: {"Content-Type": "application/json", "Authorization": `Bearer ${token}`},
-                        body: JSON.stringify({nombre: sub.nombre})
-                    })
-                );
-                await Promise.all(promesasSubtareas);
+            setTasks(prev =>
+                prev.map(t =>
+                    t.id === tarea.id
+                        ? {...t, ...res.data, subtareas: editData.subtareas}
+                        : t
+                )
+            );
 
-                const res = await response.json();
-                setTasks(prev => prev.map(t => t.id === tarea.id ? {
-                    ...t, ...res.data,
-                    subtareas: editData.subtareas
-                } : t));
-                setIsEditing(false);
-                Swal.fire({
-                    toast: true,
-                    position: "top-end",
-                    icon: "success",
-                    title: "Actualizado",
-                    showConfirmButton: false,
-                    timer: 1500
-                });
-            }
-        } catch (error) {
-            console.error(error);
-        } finally {
-            navigate("/hoy");
+            setIsEditing(false);
+
+            Swal.fire({
+                toast: true,
+                position: "top-end",
+                icon: "success",
+                title: "Actualizado",
+                showConfirmButton: false,
+                timer: 1500
+            });
+
+        } catch (e) {
+            console.error(e);
         }
     };
 
     const handleDeleteTask = async () => {
-        navigate(`/hoy/eliminar/${tarea.id}`);
-        const token = localStorage.getItem("token");
+
         const confirm = await Swal.fire({
             title: "¿Eliminar?",
             icon: "warning",
@@ -110,16 +98,15 @@ export default function TaskCard({tarea, setTasks, API_URL, navigate}) {
             confirmButtonColor: "#ef4444"
         });
 
-        if (!confirm.isConfirmed) return navigate("/hoy");
+        if (!confirm.isConfirmed) return;
 
         const backup = {...tarea, subtareas: [...(tarea.subtareas || [])]};
+
         setTasks(prev => prev.filter(t => t.id !== tarea.id));
 
         try {
-            await fetch(`${API_URL}/tareas/api/tareas/${tarea.id}/`, {
-                method: "DELETE",
-                headers: {"Authorization": `Bearer ${token}`}
-            });
+            await eliminarTarea(API_URL, tarea.id);
+
             const result = await Swal.fire({
                 toast: true,
                 position: "bottom-end",
@@ -132,132 +119,102 @@ export default function TaskCard({tarea, setTasks, API_URL, navigate}) {
 
             if (result.isConfirmed) {
 
-                //Restaurar tarea padre
-                const restoreRes = await fetch(`${API_URL}/tareas/api/tareas/`, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "Authorization": `Bearer ${token}`
-                    },
-                    body: JSON.stringify({
-                        nombre: backup.nombre,
-                        descripcion: backup.descripcion,
-                        fecha_entrega: backup.fecha_entrega,
-                        carga_mental: backup.carga_mental,
-                        tipo_tarea: backup.tipo_tarea,
-                        curso: backup.curso
-                    })
+                const newTask = await crearTarea(API_URL, {
+                    nombre: backup.nombre,
+                    descripcion: backup.descripcion,
+                    fecha_entrega: backup.fecha_entrega,
+                    carga_mental: backup.carga_mental,
+                    tipo_tarea: backup.tipo_tarea,
+                    curso: backup.curso
                 });
 
-                if (!restoreRes.ok) return;
+                const restoredSubs = await Promise.all(
+                    backup.subtareas.map(sub =>
+                        crearTarea(API_URL, {
+                            nombre: sub.nombre,
+                            parent: newTask.data.id
+                        })
+                    )
+                );
 
-                const newT = (await restoreRes.json()).data;
-
-                let nuevasSubtareas = [];
-
-                //Restaurar subtareas
-                if (backup.subtareas?.length) {
-
-                    const responses = await Promise.all(
-                        backup.subtareas.map(sub =>
-                            fetch(`${API_URL}/tareas/api/tareas/`, {
-                                method: "POST",
-                                headers: {
-                                    "Content-Type": "application/json",
-                                    "Authorization": `Bearer ${token}`
-                                },
-                                body: JSON.stringify({
-                                    nombre: sub.nombre,
-                                    parent: newT.id
-                                })
-                            })
-                        )
-                    );
-
-                    nuevasSubtareas = await Promise.all(
-                        responses.map(r => r.json())
-                    );
-
-                    nuevasSubtareas = nuevasSubtareas.map(r => r.data || r);
-                }
-
-                //Actualizar estado
                 setTasks(prev => [
-                    ...prev,
-                    {
-                        ...newT,
-                        subtareas: nuevasSubtareas
-                    }
+                    ...prev, {...newTask.data, subtareas: restoredSubs.map(r => r.data)}
                 ]);
             }
+
         } catch (e) {
             setTasks(prev => [...prev, tarea]);
-        } finally {
-            navigate("/hoy");
         }
     };
 
     const toggleSubtask = async (sub) => {
-        const token = localStorage.getItem("token");
         const nuevoEstado = !sub.completada;
+
         try {
-            const response = await fetch(`${API_URL}/tareas/api/tareas/${sub.id}/`, {
-                method: "PATCH",
-                headers: {"Content-Type": "application/json", "Authorization": `Bearer ${token}`},
-                body: JSON.stringify({completada: nuevoEstado})
+            await actualizarTarea(API_URL, sub.id, {
+                completada: nuevoEstado
             });
-            if (response.ok) {
-                setTasks(prev => prev.map(t => {
+
+            setTasks(prev => prev.map(t => {
                     if (t.id === tarea.id) {
                         const newSubs = t.subtareas.map(s => s.id === sub.id ? {...s, completada: nuevoEstado} : s);
-                        return {...t, subtareas: newSubs, completada: newSubs.every(s => s.completada)};
+
+                        return {
+                            ...t,
+                            subtareas: newSubs,
+                            completada: newSubs.every(s => s.completada)
+                        };
                     }
+
                     return t;
-                }));
-            }
+                })
+            );
+
         } catch (e) {
             console.error(e);
         }
     };
 
     const handleAddSubtask = async () => {
+
         if (!subtaskInput.trim()) return;
-        const token = localStorage.getItem("token");
+
         try {
-            const response = await fetch(`${API_URL}/tareas/api/tareas/`, {
-                method: "POST",
-                headers: {"Content-Type": "application/json", "Authorization": `Bearer ${token}`},
-                body: JSON.stringify({nombre: subtaskInput, parent: tarea.id})
+            const res = await crearTarea(API_URL, {
+                nombre: subtaskInput,
+                parent: tarea.id
             });
-            if (response.ok) {
-                const res = await response.json();
-                setTasks(prev => prev.map(t => t.id === tarea.id ? {
-                    ...t,
-                    subtareas: [...(t.subtareas || []), res.data]
-                } : t));
-                setSubtaskInput("");
-            }
+
+            setTasks(prev => prev.map(t => t.id === tarea.id ? {
+                ...t,
+                subtareas: [...(t.subtareas || []), res.data]
+            } : t));
+
+            setSubtaskInput("");
+
         } catch (e) {
             console.error(e);
         }
     };
 
     const toggleComplete = async () => {
-        const token = localStorage.getItem("token");
         const nuevoEstado = !tarea.completada;
+
         try {
-            const response = await fetch(`${API_URL}/tareas/api/tareas/${tarea.id}/`, {
-                method: "PATCH",
-                headers: {"Content-Type": "application/json", "Authorization": `Bearer ${token}`},
-                body: JSON.stringify({completada: nuevoEstado})
+
+            await actualizarTarea(API_URL, tarea.id, {
+                completada: nuevoEstado
             });
-            if (response.ok) {
-                setTasks(prev => prev.map(t => t.id === tarea.id ? {
-                    ...t,
-                    completada: nuevoEstado,
-                    subtareas: t.subtareas.map(s => ({...s, completada: nuevoEstado}))
-                } : t));
-            }
+
+            setTasks(prev => prev.map(t => t.id === tarea.id
+                    ? {...t, completada: nuevoEstado, subtareas: t.subtareas.map(s => ({
+                            ...s, completada: nuevoEstado
+                        }))
+                    }
+                    : t
+                )
+            );
+
         } catch (e) {
             console.error(e);
         }

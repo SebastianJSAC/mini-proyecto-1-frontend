@@ -2,8 +2,11 @@ import {BrowserRouter, Routes, Route, Navigate} from "react-router-dom";
 import Login from "./components/Login.jsx";
 import Registro from "./components/Registro.jsx";
 import Layout from "./components/layout/Layout.jsx";
-import TasksView from "./components/views/TasksView.jsx";
-import CreateTaskView from "./components/views/CreateTaskView.jsx";
+import CompletadasView from "./components/views/CompletadasView.jsx";
+import HoyView from "./components/views/HoyView.jsx";
+import VencidasView from "./components/views/VencidasView.jsx";
+import UrgentesView from "./components/views/UrgentesView.jsx";
+import TodasView from "./components/views/TodasView.jsx";
 
 export default function App() {
 
@@ -18,18 +21,13 @@ export default function App() {
                 <Route path="/registro" element={<Registro />} />
 
                 {/* Rutas con Layout */}
-
-                <Route path="/hoy" element={<PrivateRoute><Layout/></PrivateRoute>}>
-
-                    <Route index element={<TasksView/>}/>
-
-                    <Route path="crear" element={<CreateTaskView/>}/>
-
-                    <Route path="editar/:id" element={<TasksView/>}/>
-                    <Route path="eliminar/:id" element={<TasksView/>}/>
-                    <Route path="restaurar/:id" element={<TasksView/>}/>
-                    <Route path="subtarea/:id" element={<TasksView/>}/>
-
+                <Route path="/" element={<PrivateRoute><Layout/></PrivateRoute>}>
+                    <Route index element={<HoyView />} />
+                    <Route path="todas" element={<TodasView />} />
+                    <Route path="hoy" element={<HoyView />} />
+                    <Route path="completadas" element={<CompletadasView />} />
+                    <Route path="vencidas" element={<VencidasView />} />
+                    <Route path="urgentes" element={<UrgentesView />} />
                 </Route>
 
 

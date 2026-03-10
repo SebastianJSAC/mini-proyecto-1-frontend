@@ -109,7 +109,7 @@ export default function QuickTaskForm({API_URL, obtenerTareas, navigate}) {
         <textarea
             value={descripcionInput}
             onChange={(e) => setDescripcionInput(e.target.value)}
-            placeholder="Descripción (opcional)..."
+            placeholder="Descripción"
             maxLength={100}
             className="w-full px-5 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-400"
         />

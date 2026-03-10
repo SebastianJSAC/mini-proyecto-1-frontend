@@ -8,16 +8,16 @@ import QuickTaskForm from "../today/QuickTaskForm.jsx";
 import { Plus, X } from "lucide-react";
 
 
-export default function TasksView() {
+export default function TasksView({ tasks, setTasks }) {
 
     const API_URL = import.meta.env.VITE_API_URL?.replace(/\/$/, "");
     const navigate = useNavigate();
 
-    const [tasks, setTasks] = useState([]);
+    //const [tasks, setTasks] = useState([]);
     const [showQuickTaskModal, setShowQuickTaskModal] = useState(false);
 
 
-    useEffect(()=>{
+    /*useEffect(()=>{
         const cargar = async () => {
             const data = await obtenerTareas(API_URL);
 
@@ -27,7 +27,7 @@ export default function TasksView() {
         };
 
         cargar();
-    },[]);
+    },[]);*/
 
     const tareasPendientes = tasks.filter(
         t => (t.parent === null || t.parent_id === null) && !t.completada
