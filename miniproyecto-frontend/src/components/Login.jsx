@@ -18,20 +18,23 @@ export default function Login() {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(form)
             });
+
             const data = await res.json();
+
             if (res.ok) {
                 localStorage.setItem("token", data.access);
                 navigate("/hoy");
             } else {
+                // SweetAlert dinámico según el error_type del backend
                 Swal.fire({
                     icon: "error",
-                    title: "Acceso denegado",
-                    text: "Usuario o contraseña incorrectos",
+                    title: data.error_type === "username" ? "Usuario no encontrado" : "Contraseña Incorrecta",
+                    text: data.mensaje,
                     confirmButtonColor: "#ef4444"
                 });
             }
         } catch (error) {
-            Swal.fire("Error", "No se pudo conectar con el servidor", "error");
+            Swal.fire("Error", "Error de conexión", "error");
         } finally {
             setCargando(false);
         }

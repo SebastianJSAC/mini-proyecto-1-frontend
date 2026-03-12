@@ -11,6 +11,19 @@ export default function Registro() {
 
     const manejarRegistro = async (e) => {
         e.preventDefault();
+
+        // Validación: Solo letras, números y guiones bajos (sin espacios)
+        const regexNombre = /^[a-zA-Z0-9_]+$/;
+
+        if (!regexNombre.test(datos.username)) {
+            return Swal.fire({
+                icon: "warning",
+                title: "Usuario inválido",
+                text: "El nombre debe ser una sola palabra, sin espacios ni caracteres especiales (solo letras, números o _)",
+                confirmButtonColor: "#f59e0b"
+            });
+        }
+
         setCargando(true);
         try {
             const response = await fetch(`${API_URL}/tareas/api/registro/`, {
