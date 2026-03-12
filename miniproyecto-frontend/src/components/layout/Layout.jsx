@@ -29,7 +29,7 @@ export default function Layout() {
         { to: "/hoy", label: "Hoy", icon: ListTodo },
         { to: "/completadas", label: "Completadas", icon: CheckCircle2 },
         { to: "/vencidas", label: "Vencidas", icon: Clock },
-        { to: "/urgentes", label: "Urgentes", icon: AlertCircle },
+        { to: "/proximas", label: "Proximas", icon: AlertCircle },
         { to: "/todas", label: "Todas", icon: LayoutGrid },
     ];
 

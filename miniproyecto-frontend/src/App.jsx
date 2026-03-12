@@ -5,7 +5,7 @@ import Layout from "./components/layout/Layout.jsx";
 import CompletadasView from "./components/views/CompletadasView.jsx";
 import HoyView from "./components/views/HoyView.jsx";
 import VencidasView from "./components/views/VencidasView.jsx";
-import UrgentesView from "./components/views/UrgentesView.jsx";
+import ProximasView from "./components/views/ProximasView.jsx";
 import TodasView from "./components/views/TodasView.jsx";
 
 export default function App() {
@@ -27,7 +27,7 @@ export default function App() {
                     <Route path="hoy" element={<HoyView />} />
                     <Route path="completadas" element={<CompletadasView />} />
                     <Route path="vencidas" element={<VencidasView />} />
-                    <Route path="urgentes" element={<UrgentesView />} />
+                    <Route path="proximas" element={<ProximasView />} />
                 </Route>
 
 

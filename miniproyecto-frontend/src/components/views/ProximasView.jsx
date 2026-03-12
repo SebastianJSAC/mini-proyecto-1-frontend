@@ -1,7 +1,7 @@
 import TasksView from "./TasksView.jsx";
 import { useOutletContext } from "react-router-dom";
 
-export default function UrgentesView() {
+export default function ProximasView() {
     const { tasks, setTasks, API_URL } = useOutletContext();
 
     const hoy = new Date();
