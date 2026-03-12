@@ -31,7 +31,7 @@ export default function QuickTaskForm({API_URL, obtenerTareas, navigate}) {
 
         const token = localStorage.getItem("token");
 
-        navigate("/hoy/crear");
+        //navigate("/hoy/crear");
 
         try {
             const response = await fetch(`${API_URL}/tareas/api/tareas/`, {
