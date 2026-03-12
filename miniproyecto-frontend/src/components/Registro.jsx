@@ -1,26 +1,16 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { UserPlus, Mail, Lock, User } from "lucide-react"; // Usando tus iconos
+import { UserPlus, Mail, Lock, User, ArrowLeft } from "lucide-react";
 import Swal from "sweetalert2";
 
 export default function Registro() {
-    const [datos, setDatos] = useState({
-        username: "",
-        email: "",
-        password: ""
-    });
+    const [datos, setDatos] = useState({ username: "", email: "", password: "" });
     const [cargando, setCargando] = useState(false);
     const navigate = useNavigate();
     const API_URL = import.meta.env.VITE_API_URL?.replace(/\/$/, "");
 
     const manejarRegistro = async (e) => {
         e.preventDefault();
-
-        // Validación básica en el Front
-        if (!datos.username || !datos.password) {
-            return Swal.fire("Campos obligatorios", "El usuario y la contraseña son necesarios", "warning");
-        }
-
         setCargando(true);
         try {
             const response = await fetch(`${API_URL}/tareas/api/registro/`, {
@@ -28,84 +18,72 @@ export default function Registro() {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(datos),
             });
-
             const res = await response.json();
-
             if (response.ok) {
-                await Swal.fire({
-                    icon: "success",
-                    title: "¡Cuenta creada!",
-                    text: res.mensaje || "Ahora puedes iniciar sesión con tus credenciales.",
-                    confirmButtonColor: "#10b981"
-                });
+                await Swal.fire({ icon: "success", title: "¡Todo listo!", text: "Cuenta creada con éxito.", confirmButtonColor: "#10b981" });
                 navigate("/login");
             } else {
-                // Si el usuario ya existe, Django nos enviará el error aquí
-                const errorMsg = res.errores?.username?.[0] || res.mensaje || "Error al registrarse";
-                Swal.fire("Error", errorMsg, "error");
+                Swal.fire("Error", res.errores?.username?.[0] || "Datos inválidos", "error");
             }
         } catch (error) {
-            console.error("Error en registro:", error);
-            Swal.fire("Error", "No se pudo conectar con el servidor", "error");
+            Swal.fire("Error", "Servidor no disponible", "error");
         } finally {
             setCargando(false);
         }
     };
 
     return (
-        <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6 font-sans">
-            <div className="w-full max-w-md bg-white rounded-2xl shadow-xl border border-slate-100 p-8">
-                <div className="text-center mb-8">
+        <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6">
+            <div className="w-full max-w-md bg-white rounded-3xl shadow-2xl shadow-emerald-100 border border-slate-100 p-10 relative">
+                <Link to="/login" className="absolute top-8 left-8 text-slate-400 hover:text-emerald-600 transition-colors">
+                    <ArrowLeft size={20} />
+                </Link>
+
+                <div className="text-center mb-8 pt-4">
                     <div className="bg-emerald-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
                         <UserPlus className="text-emerald-600 w-8 h-8" />
                     </div>
-                    <h2 className="text-2xl font-bold text-slate-800">Únete a FocusFlow</h2>
-                    <p className="text-slate-500 text-sm">Organiza tus misiones diarias hoy mismo</p>
+                    <h2 className="text-3xl font-black text-slate-800">Crea tu cuenta</h2>
+                    <p className="text-slate-500 text-sm mt-1">Únete a la comunidad FocusFlow</p>
                 </div>
 
                 <form onSubmit={manejarRegistro} className="space-y-5">
-                    {/* Usuario */}
-                    <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-1">Nombre de Usuario</label>
-                        <div className="relative">
-                            <User className="absolute left-3 top-3 w-5 h-5 text-slate-400" />
+                    <div className="space-y-1">
+                        <label className="text-xs font-bold text-slate-500 uppercase ml-1">Usuario</label>
+                        <div className="relative group">
+                            <User className="absolute left-4 top-3.5 w-5 h-5 text-slate-400 group-focus-within:text-emerald-500 transition-colors" />
                             <input
                                 type="text"
                                 required
-                                className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all"
-                                placeholder="Ej: maria_dev"
+                                className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 outline-none transition-all"
+                                placeholder="usuario_cool"
                                 onChange={(e) => setDatos({ ...datos, username: e.target.value })}
                             />
-                            <p className="text-[10px] text-slate-400 mt-1">
-                                * Sin espacios. Solo letras, números y guiones (_ o -).
-                            </p>
                         </div>
                     </div>
 
-                    {/* Email */}
-                    <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-1">Correo Electrónico</label>
-                        <div className="relative">
-                            <Mail className="absolute left-3 top-3 w-5 h-5 text-slate-400" />
+                    <div className="space-y-1">
+                        <label className="text-xs font-bold text-slate-500 uppercase ml-1">Email</label>
+                        <div className="relative group">
+                            <Mail className="absolute left-4 top-3.5 w-5 h-5 text-slate-400 group-focus-within:text-emerald-500 transition-colors" />
                             <input
                                 type="email"
                                 required
-                                className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all"
-                                placeholder="tu@correo.com"
+                                className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 outline-none transition-all"
+                                placeholder="ejemplo@email.com"
                                 onChange={(e) => setDatos({ ...datos, email: e.target.value })}
                             />
                         </div>
                     </div>
 
-                    {/* Password */}
-                    <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-1">Contraseña</label>
-                        <div className="relative">
-                            <Lock className="absolute left-3 top-3 w-5 h-5 text-slate-400" />
+                    <div className="space-y-1">
+                        <label className="text-xs font-bold text-slate-500 uppercase ml-1">Contraseña</label>
+                        <div className="relative group">
+                            <Lock className="absolute left-4 top-3.5 w-5 h-5 text-slate-400 group-focus-within:text-emerald-500 transition-colors" />
                             <input
                                 type="password"
                                 required
-                                className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all"
+                                className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 outline-none transition-all"
                                 placeholder="••••••••"
                                 onChange={(e) => setDatos({ ...datos, password: e.target.value })}
                             />
@@ -115,19 +93,17 @@ export default function Registro() {
                     <button
                         type="submit"
                         disabled={cargando}
-                        className={`w-full py-3 rounded-xl font-bold text-white transition-all transform active:scale-95 ${
-                            cargando ? "bg-slate-400 cursor-not-allowed" : "bg-emerald-600 hover:bg-emerald-700 shadow-lg shadow-emerald-200"
-                        }`}
+                        className="w-full py-4 rounded-2xl font-bold text-white bg-emerald-600 hover:bg-emerald-700 shadow-xl shadow-emerald-200 transition-all active:scale-[0.98] disabled:bg-slate-300"
                     >
-                        {cargando ? "Creando cuenta..." : "Comenzar ahora"}
+                        {cargando ? "Procesando..." : "Registrarme"}
                     </button>
                 </form>
 
-                <div className="mt-8 text-center border-t border-slate-100 pt-6">
-                    <p className="text-slate-600 text-sm">
-                        ¿Ya tienes una cuenta?{" "}
+                <div className="mt-8 text-center border-t border-slate-50 pt-6">
+                    <p className="text-slate-500 text-sm">
+                        ¿Ya tienes cuenta?{" "}
                         <Link to="/login" className="text-emerald-600 font-bold hover:underline">
-                            Inicia sesión aquí
+                            Inicia sesión
                         </Link>
                     </p>
                 </div>
