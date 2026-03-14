@@ -52,10 +52,10 @@ export default function HoyView() {
         <div className="space-y-8">
             {/* --- GRID DE ESTADÍSTICAS --- */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                <StatCard title="Todas" count={todas} icon={LayoutGrid} color="bg-blue-500" path="/todas" />
-                <StatCard title="Proximas" count={urgentes} icon={AlertCircle} color="bg-orange-500" path="/proximas" />
                 <StatCard title="Vencidas" count={vencidas} icon={Clock} color="bg-red-500" path="/vencidas" />
+                <StatCard title="Proximas" count={urgentes} icon={AlertCircle} color="bg-orange-500" path="/proximas" />
                 <StatCard title="Completadas" count={completadas} icon={CheckCircle2} color="bg-emerald-500" path="/completadas" />
+                <StatCard title="Todas" count={todas} icon={LayoutGrid} color="bg-blue-500" path="/todas" />
             </div>
 
             {/* --- TARJETA EXPANDIBLE DE HOY --- */}
