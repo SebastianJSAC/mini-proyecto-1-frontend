@@ -122,6 +122,7 @@ export default function Layout() {
                             }}
                             navigate={navigate}
                             onClose={() => setShowQuickTaskModal(false)}
+                            setTasks={setTasks}
                         />
                     </div>
                 </div>

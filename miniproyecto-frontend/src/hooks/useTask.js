@@ -9,6 +9,50 @@ export const useTask = (tarea, setTasks, API_URL) => {
         setTasks(prev => prev.map(t => t.id === tarea.id ? {...t, ...changes} : t));
     };
 
+    const handleAddTask = async (taskData, tempSubtasks) => {
+        try {
+            // Crear la tarea principal
+            const res = await crearTarea(API_URL, {
+                nombre: taskData.nombre,
+                descripcion: taskData.descripcion || "Descripción de la tarea vacía",
+                fecha_entrega: taskData.fecha_entrega,
+                carga_mental: taskData.carga_mental || null,
+                tipo_tarea: taskData.tipo_tarea,
+                curso: taskData.curso || null
+            });
+
+            const tareaCreada = res.data || res;
+
+            // Crear las subtareas si existen
+            if (tempSubtasks && tempSubtasks.length > 0) {
+                const promesas = tempSubtasks.map(subNombre =>
+                    crearTarea(API_URL, {
+                        nombre: subNombre,
+                        parent: tareaCreada.id
+                    })
+                );
+                const resSubtareas = await Promise.all(promesas);
+
+                // Actualizar estado local con subtareas incluidas
+                const tareaCompleta = {
+                    ...tareaCreada,
+                    subtareas: resSubtareas.map(r => r.data || r)
+                };
+                setTasks(prev => [...prev, tareaCompleta]);
+            } else {
+                // Si no hay subtareas, solo añadir la principal
+                setTasks(prev => [...prev, {...tareaCreada, subtareas: []}]);
+            }
+
+            mostrarToast("Tarea agregada correctamente", "success");
+            return true; // Para indicar éxito al componente
+        } catch (error) {
+            console.error("Error creando tarea:", error);
+            mostrarToast("Error al crear la tarea", "error");
+            return false;
+        }
+    };
+
     const handleUpdate = async (editData) => {
         try {
             //Actualizar la tarea principal
@@ -216,6 +260,7 @@ export const useTask = (tarea, setTasks, API_URL) => {
     };
 
     return {
+        handleAddTask,
         handleUpdate,
         handleDelete,
         handleAddSubtask,

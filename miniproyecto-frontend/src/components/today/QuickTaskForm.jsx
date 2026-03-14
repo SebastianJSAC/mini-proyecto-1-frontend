@@ -1,112 +1,87 @@
 import {CalendarDays, Brain, Sparkles, Plus, X, CheckCircleIcon} from "lucide-react";
 import {useState} from "react";
 import {mostrarToast} from '../../helpers/taskHelpers.js'
+import {useTask} from "../../hooks/useTask.js";
 
-export default function QuickTaskForm({API_URL, obtenerTareas, navigate, onClose}) {
+export default function QuickTaskForm({API_URL, setTasks, obtenerTareas, navigate, onClose}) {
 
-    const [quickTaskInput, setQuickTaskInput] = useState("");
-    const [descripcionInput, setDescripcionInput] = useState("");
-    const [selectedDueDate, setSelectedDueDate] = useState("");
-    const [selectedMentalLoad, setSelectedMentalLoad] = useState(undefined);
-    const [selectedTipoTarea, setSelectedTipoTarea] = useState("OT");
-    const [cursoInput, setCursoInput] = useState("");
+    const initialFormState = {
+        nombre: "",
+        descripcion: "",
+        fecha_entrega: "",
+        carga_mental: "",
+        tipo_tarea: "OT",
+        curso: ""
+    };
 
+    const [form, setForm] = useState(initialFormState);
     const [tempSubtasks, setTempSubtasks] = useState([]);
     const [currentSubtaskInput, setCurrentSubtaskInput] = useState("");
 
-    const fechaISO = selectedDueDate ? new Date(selectedDueDate).toISOString() : null;
+    const fechaISO = form.fecha_entrega ? new Date(form.fecha_entrega).toISOString() : null;
+    const {handleAddTask} = useTask(null, setTasks, API_URL);
+
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setForm(prev => ({
+            ...prev,
+            [name]: value
+        }));
+    };
 
     const addSubtaskToTempList = () => {
-
         if (!currentSubtaskInput.trim()) return;
 
         setTempSubtasks([...tempSubtasks, currentSubtaskInput.trim()]);
-
         setCurrentSubtaskInput("");
     };
 
-    const handleAddTask = async () => {
+    const onSave = async (keepOpen = false) => {
+        if (!form.nombre.trim()) return;
 
-        if (!quickTaskInput.trim()) return;
+        // Formateamos los datos justo antes de enviar
+        const taskData = {
+            ...form,
+            fecha_entrega: form.fecha_entrega ? new Date(form.fecha_entrega).toISOString() : null,
+            carga_mental: form.carga_mental ? Number(form.carga_mental) : null
+        };
 
-        const token = localStorage.getItem("token");
+        const success = await handleAddTask(taskData, tempSubtasks);
 
-        try {
-            const response = await fetch(`${API_URL}/tareas/api/tareas/`, {
-                method: "POST", headers: {
-                    "Content-Type": "application/json", "Authorization": `Bearer ${token}`
-                }, body: JSON.stringify({
-                    nombre: quickTaskInput,
-                    descripcion: descripcionInput || "Descripcion de la tarea vacia",
-                    fecha_entrega: fechaISO,
-                    carga_mental: selectedMentalLoad || null,
-                    tipo_tarea: selectedTipoTarea,
-                    curso: cursoInput || null
-                }),
-            });
-
-            const res = await response.json();
-
-            if (response.ok) {
-
-                const tareaPadre = res.data || res;
-
-                if (tempSubtasks.length > 0) {
-
-                    const promesas = tempSubtasks.map(subNombre => fetch(`${API_URL}/tareas/api/tareas/`, {
-                        method: "POST", headers: {
-                            "Content-Type": "application/json", "Authorization": `Bearer ${token}`
-                        }, body: JSON.stringify({
-                            nombre: subNombre, parent: tareaPadre.id
-                        })
-                    }));
-
-                    await Promise.all(promesas);
-                }
-
-                await obtenerTareas(API_URL);
-
-                setQuickTaskInput("");
-                setDescripcionInput("");
-                setSelectedDueDate("");
-                setSelectedMentalLoad(undefined);
-                setCursoInput("");
-                setSelectedTipoTarea("OT");
-                setTempSubtasks([]);
-
-                //navigate('hoy');
-
-                mostrarToast("Tarea agregada correctamente", "success");
-                //navigate("/hoy");
-            }
-
-        } catch (error) {
-            console.error("Error creando tarea:", error);
+        if (success) {
+            setForm(initialFormState); // Limpia todo el objeto de un golpe
+            setTempSubtasks([]);
+            if (!keepOpen) onClose();
         }
     };
+
+    // Validación para deshabilitar botones
+    const isInvalid = !form.nombre.trim() || !form.descripcion.trim() || !form.fecha_entrega || !form.carga_mental || !form.curso.trim();
 
     return (<div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-md space-y-6">
         {/* Nombre de la tarea */}
         <h1>Nueva Tarea</h1>
 
         <input
+            name="nombre"
             type="text"
-            value={quickTaskInput}
-            onChange={(e) => setQuickTaskInput(e.target.value)}
+            value={form.nombre}
+            onChange={handleChange}
             placeholder="¿Qué tarea quieres agregar?"
             className="w-full px-5 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-400"
         />
 
         {/* Descripción */}
         <textarea
-            value={descripcionInput}
-            onChange={(e) => setDescripcionInput(e.target.value)}
+            name="descripcion"
+            value={form.descripcion}
+            onChange={handleChange}
             placeholder="Descripción"
             maxLength={100}
             className="w-full px-5 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-400"
         />
         <div className="text-right text-xs text-gray-400">
-            {100 - descripcionInput.length} caracteres restantes
+            {100 - form.descripcion.length} caracteres restantes
         </div>
 
         {/* Subtareas */}
@@ -147,9 +122,10 @@ export default function QuickTaskForm({API_URL, obtenerTareas, navigate, onClose
                 <div className="flex items-center gap-2 px-3 py-2 bg-gray-100 rounded-lg">
                     <CalendarDays size={16} className="text-gray-500"/>
                     <input
+                        name="fecha_entrega"
                         type="datetime-local"
-                        value={selectedDueDate}
-                        onChange={(e) => setSelectedDueDate(e.target.value)}
+                        value={form.fecha_entrega}
+                        onChange={handleChange}
                         className="bg-transparent text-sm w-full focus:outline-none"
                     />
                 </div>
@@ -161,8 +137,9 @@ export default function QuickTaskForm({API_URL, obtenerTareas, navigate, onClose
                 <div className="flex items-center gap-2 px-3 py-2 bg-gray-100 rounded-lg">
                     <Sparkles size={16} className="text-gray-500"/>
                     <select
-                        value={selectedTipoTarea}
-                        onChange={(e) => setSelectedTipoTarea(e.target.value)}
+                        name="tipo_tarea"
+                        value={form.tipo_tarea}
+                        onChange={handleChange}
                         className="bg-transparent text-sm w-full focus:outline-none"
                     >
                         <option value="EX">Examen</option>
@@ -178,9 +155,10 @@ export default function QuickTaskForm({API_URL, obtenerTareas, navigate, onClose
             <div className="flex flex-col gap-1">
                 <label className="text-xs font-medium text-gray-600">Curso / Materia</label>
                 <input
+                    name="curso"
                     type="text"
-                    value={cursoInput}
-                    onChange={(e) => setCursoInput(e.target.value)}
+                    value={form.curso}
+                    onChange={handleChange}
                     className="px-3 py-2 bg-gray-100 rounded-lg text-sm focus:outline-none"
                     placeholder="Nombre del curso"
                 />
@@ -192,10 +170,9 @@ export default function QuickTaskForm({API_URL, obtenerTareas, navigate, onClose
                 <div className="flex items-center gap-2 px-3 py-2 bg-gray-100 rounded-lg">
                     <Brain size={16} className="text-gray-500"/>
                     <select
-                        value={selectedMentalLoad ?? ""}
-                        onChange={(e) =>
-                            setSelectedMentalLoad(e.target.value ? Number(e.target.value) : undefined)
-                        }
+                        name="carga_mental"
+                        value={form.carga_mental}
+                        onChange={handleChange}
                         className="bg-transparent text-sm w-full focus:outline-none"
                     >
                         <option value="">Selecciona</option>
@@ -211,55 +188,25 @@ export default function QuickTaskForm({API_URL, obtenerTareas, navigate, onClose
 
         {/* Botón Crear */}
         <button
-            onClick={() => {
-                handleAddTask()
-                onClose()
-            }}
-            disabled={
-                !quickTaskInput.trim() ||
-                !descripcionInput.trim() ||
-                !selectedDueDate ||
-                !selectedTipoTarea ||
-                !cursoInput.trim() ||
-                selectedMentalLoad === undefined
-            }
-            className={`w-full py-3 rounded-xl font-semibold transition
-    ${
-                !quickTaskInput.trim() ||
-                !descripcionInput.trim() ||
-                !selectedDueDate ||
-                !selectedTipoTarea ||
-                !cursoInput.trim() ||
-                selectedMentalLoad === undefined
+            onClick={() => onSave(false)}
+            disabled={isInvalid}
+            className={`w-full py-3 rounded-xl font-semibold transition ${
+                isInvalid
                     ? "bg-transparent border border-gray-300 text-gray-400 cursor-not-allowed"
                     : "bg-emerald-600 hover:bg-emerald-500 text-white cursor-pointer focus:outline-none"
-            }
-  `}
+            }`}
         >
             Crear Tarea
         </button>
+
         <button
-            onClick={handleAddTask}
-            disabled={
-                !quickTaskInput.trim() ||
-                !descripcionInput.trim() ||
-                !selectedDueDate ||
-                !selectedTipoTarea ||
-                !cursoInput.trim() ||
-                selectedMentalLoad === undefined
-            }
-            className={`w-full py-3 rounded-xl font-semibold transition
-    ${
-                !quickTaskInput.trim() ||
-                !descripcionInput.trim() ||
-                !selectedDueDate ||
-                !selectedTipoTarea ||
-                !cursoInput.trim() ||
-                selectedMentalLoad === undefined
+            onClick={() => onSave(true)}
+            disabled={isInvalid}
+            className={`w-full py-3 rounded-xl font-semibold transition ${
+                isInvalid
                     ? "bg-transparent border border-gray-300 text-gray-400 cursor-not-allowed"
                     : "bg-emerald-600 hover:bg-emerald-500 text-white cursor-pointer focus:outline-none"
-            }
-  `}
+            }`}
         >
             Crear Otra Tarea
         </button>
