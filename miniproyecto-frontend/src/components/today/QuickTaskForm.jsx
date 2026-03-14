@@ -1,6 +1,6 @@
-import {CalendarDays, Brain, Sparkles, Plus, X} from "lucide-react";
+import {CalendarDays, Brain, Sparkles, Plus, X, CheckCircleIcon} from "lucide-react";
 import {useState} from "react";
-import Swal from "sweetalert2";
+import {mostrarToast} from '../../helpers/taskHelpers.js'
 
 export default function QuickTaskForm({API_URL, obtenerTareas, navigate, onClose}) {
 
@@ -76,17 +76,8 @@ export default function QuickTaskForm({API_URL, obtenerTareas, navigate, onClose
 
                 //navigate('hoy');
 
-                Swal.fire({
-                    toast: true,
-                    position: "top-end",
-                    showConfirmButton: false,
-                    icon: "success",
-                    title: "Tarea agregada",
-                    timer: 4000,
-                    timerProgressBar: true
-                });
-
-                navigate("/hoy");
+                mostrarToast("Tarea agregada correctamente", "success");
+                //navigate("/hoy");
             }
 
         } catch (error) {

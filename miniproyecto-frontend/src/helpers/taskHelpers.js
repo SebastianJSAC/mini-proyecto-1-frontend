@@ -54,3 +54,43 @@ export const getTiempoRestante = (fechaEntrega) => {
         color: "bg-amber-50 text-amber-600 border-amber-200"
     };
 };
+
+export function mostrarToast(mensaje, tipo = "success") {
+
+    const colores = {
+        success: "bg-emerald-500",
+        error: "bg-red-500",
+        warning: "bg-amber-500"
+    };
+
+    const toast = document.createElement("div");
+
+    toast.className = `
+            fixed top-6 right-6 z-50 flex items-center gap-3
+            px-5 py-3.5 rounded-xl text-white text-sm font-medium
+            shadow-xl transition-all duration-300
+            opacity-0 translate-y-2 ${colores[tipo]}
+        `;
+
+    // icono
+    const icon = document.createElement("span");
+    icon.innerHTML = "✓";
+    icon.className = "text-lg font-bold";
+
+    const text = document.createElement("span");
+    text.textContent = mensaje;
+
+    toast.appendChild(icon);
+    toast.appendChild(text);
+
+    document.body.appendChild(toast);
+
+    requestAnimationFrame(() => {
+        toast.classList.remove("opacity-0", "translate-y-2");
+    });
+
+    setTimeout(() => {
+        toast.classList.add("opacity-0", "translate-y-2");
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
+}

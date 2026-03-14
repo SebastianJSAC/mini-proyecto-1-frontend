@@ -1,6 +1,7 @@
 import Swal from "sweetalert2";
 import {actualizarTarea, eliminarTarea, crearTarea} from "../services/taskService";
 import axios from "axios";
+import {mostrarToast} from '../helpers/taskHelpers.js'
 
 export const useTask = (tarea, setTasks, API_URL) => {
 
@@ -35,14 +36,7 @@ export const useTask = (tarea, setTasks, API_URL) => {
                 editData.subtareas
             });
 
-            Swal.fire({
-                toast: true,
-                position: "top-end",
-                icon: "success",
-                title: "Actualizado",
-                showConfirmButton: false,
-                timer: 1500
-            });
+            mostrarToast('Actualizado', "success")
             return true;
         } catch (e) {
             console.error(e);
@@ -68,7 +62,7 @@ export const useTask = (tarea, setTasks, API_URL) => {
             await eliminarTarea(API_URL, tarea.id);
             const result = await Swal.fire({
                 toast: true,
-                position: "bottom-end",
+                position: "top-end",
                 icon: "info",
                 title: "Eliminado",
                 showConfirmButton: true,
@@ -174,14 +168,11 @@ export const useTask = (tarea, setTasks, API_URL) => {
                 subtareas: (tarea.subtareas || []).map(s => ({...s, completada: nuevoEstado}))
             });
 
-            Swal.fire({
-                toast: true,
-                position: "top-end",
-                icon: nuevoEstado ? "success" : "info",
-                title: nuevoEstado ? "Tarea completada" : "Tarea reabierta",
-                showConfirmButton: false,
-                timer: 2000
-            });
+            if (nuevoEstado) {
+                mostrarToast("Tarea completada","success");
+            } else {
+                mostrarToast("Tarea reabierta","success");
+            }
 
         } catch (e) {
             console.error(e);
@@ -205,30 +196,31 @@ export const useTask = (tarea, setTasks, API_URL) => {
 
         try {
             const promesas = vencidas.map(t =>
-                axios.patch(`${API_URL}/tareas/api/tareas/${t.id}/`, { completada: true }, {
-                    headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
+                axios.patch(`${API_URL}/tareas/api/tareas/${t.id}/`, {completada: true}, {
+                    headers: {Authorization: `Bearer ${localStorage.getItem("token")}`}
                 })
             );
             await Promise.all(promesas);
 
             const IDsVencidas = vencidas.map(t => t.id);
             setTasks(prev => prev.map(t =>
-                IDsVencidas.includes(t.id) ? { ...t, completada: true } : t
+                IDsVencidas.includes(t.id) ? {...t, completada: true} : t
             ));
 
-            Swal.fire({
-                toast: true,
-                position: "top-end",
-                icon: "success",
-                title: "Tareas vencidas completadas",
-                showConfirmButton: false,
-                timer: 2000
-            });
+            mostrarToast("Tareas vencidas completadas","success");
+
         } catch (error) {
             console.error(error);
             Swal.fire("Error", "No se pudieron completar las tareas", "error");
         }
     };
 
-    return {handleUpdate, handleDelete, handleAddSubtask, handleToggleSubtask, handleToggleMainTask, handleCompleteAllVencidas};
+    return {
+        handleUpdate,
+        handleDelete,
+        handleAddSubtask,
+        handleToggleSubtask,
+        handleToggleMainTask,
+        handleCompleteAllVencidas
+    };
 };
