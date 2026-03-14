@@ -1,5 +1,6 @@
 import Swal from "sweetalert2";
 import {actualizarTarea, eliminarTarea, crearTarea} from "../services/taskService";
+import axios from "axios";
 
 export const useTask = (tarea, setTasks, API_URL) => {
 
@@ -51,7 +52,8 @@ export const useTask = (tarea, setTasks, API_URL) => {
 
     const handleDelete = async () => {
         const confirm = await Swal.fire({
-            title: "¿Eliminar?",
+            title: `¿Eliminar la tarea ${tarea.nombre}?`,
+            text: "Esta acción no puede deshacerse, se eliminará permanentemente la tarea y todas su subtareas asociadas",
             icon: "warning",
             showCancelButton: true,
             confirmButtonColor: "#ef4444"
@@ -186,5 +188,47 @@ export const useTask = (tarea, setTasks, API_URL) => {
         }
     };
 
-    return {handleUpdate, handleDelete, handleAddSubtask, handleToggleSubtask, handleToggleMainTask};
+    // Función para completar todas las vencidas
+    const handleCompleteAllVencidas = async (vencidas) => {
+        if (!vencidas || vencidas.length === 0) return;
+
+        const confirmacion = await Swal.fire({
+            title: "¿Completar todas?",
+            text: `Se marcarán como terminadas ${vencidas.length} tareas vencidas.`,
+            icon: "question",
+            showCancelButton: true,
+            confirmButtonColor: "#10b981",
+            confirmButtonText: "Sí, completar todo"
+        });
+
+        if (!confirmacion.isConfirmed) return;
+
+        try {
+            const promesas = vencidas.map(t =>
+                axios.patch(`${API_URL}/tareas/api/tareas/${t.id}/`, { completada: true }, {
+                    headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
+                })
+            );
+            await Promise.all(promesas);
+
+            const IDsVencidas = vencidas.map(t => t.id);
+            setTasks(prev => prev.map(t =>
+                IDsVencidas.includes(t.id) ? { ...t, completada: true } : t
+            ));
+
+            Swal.fire({
+                toast: true,
+                position: "top-end",
+                icon: "success",
+                title: "Tareas vencidas completadas",
+                showConfirmButton: false,
+                timer: 2000
+            });
+        } catch (error) {
+            console.error(error);
+            Swal.fire("Error", "No se pudieron completar las tareas", "error");
+        }
+    };
+
+    return {handleUpdate, handleDelete, handleAddSubtask, handleToggleSubtask, handleToggleMainTask, handleCompleteAllVencidas};
 };

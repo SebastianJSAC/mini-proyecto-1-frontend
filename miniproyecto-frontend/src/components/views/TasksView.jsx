@@ -103,7 +103,7 @@ export default function TasksView({ tasks, setTasks }) {
                         <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={16} />
                     </div>
 
-                    {/* Botón Reset (Opcional) */}
+                    {/* Botón Reset */}
                     {(tipoFiltro !== "todos" || cargaFiltro !== "todas") && (
                         <button
                             onClick={() => {setTipoFiltro("todos"); setCargaFiltro("todas");}}

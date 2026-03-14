@@ -1,8 +1,7 @@
 import { AlertTriangle, RefreshCcw, LogOut } from "lucide-react";
-import { Link, useRouteError } from "react-router-dom";
+import { Link } from "react-router-dom";
 
 const Error500Page = () => {
-    const error = useRouteError();
 
     return (
         <div className="bg-slate-50 font-sans antialiased text-slate-800 min-h-screen flex flex-col">
@@ -27,11 +26,6 @@ const Error500Page = () => {
                             trabajando para solucionarlo.
                         </p>
 
-                        {error?.message && (
-                            <p className="text-sm text-red-500">
-                                {error.message}
-                            </p>
-                        )}
                     </section>
 
                     {/* Acciones */}
@@ -60,7 +54,7 @@ const Error500Page = () => {
 
             <footer className="py-8 text-center">
                 <p className="text-slate-400 text-sm">
-                    © {new Date().getFullYear()} TaskMaster App. Manteniendo tu productividad en orden.
+                    © {new Date().getFullYear()} FocusFlow App. Manteniendo tu productividad en orden.
                 </p>
             </footer>
         </div>

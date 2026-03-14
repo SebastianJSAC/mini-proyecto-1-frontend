@@ -14,3 +14,43 @@ export const formatearFecha = (fechaStr) => {
     const fecha = new Date(fechaStr);
     return fecha.toLocaleDateString() + " " + fecha.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 };
+
+export const getTiempoRestante = (fechaEntrega) => {
+    if (!fechaEntrega) return null;
+    const entrega = new Date(fechaEntrega);
+    const ahora = new Date();
+    const difMs = entrega - ahora;
+
+    // Caso: Tarea vencida
+    if (difMs < 0) {
+        return {
+            texto: "Vencida",
+            color: "bg-red-50 text-red-600 border-red-200"
+        };
+    }
+
+    const dias = Math.floor(difMs / (1000 * 60 * 60 * 24));
+    const horas = Math.floor((difMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+
+    // Caso: Faltan días (Verde)
+    if (dias > 0) {
+        return {
+            texto: `Faltan ${dias}d ${horas}h`,
+            color: "bg-emerald-50 text-emerald-600 border-emerald-200"
+        };
+    }
+
+    // Caso: Faltan pocas horas - menos de 3h (Rojo / Muy poco tiempo)
+    if (horas < 3) {
+        return {
+            texto: `¡Cierra en ${horas}h!`,
+            color: "bg-red-100 text-red-700 border-red-300 animate-pulse"
+        };
+    }
+
+    // Caso: Faltan horas - más de 3h (Amarillo)
+    return {
+        texto: `Faltan ${horas} horas`,
+        color: "bg-amber-50 text-amber-600 border-amber-200"
+    };
+};

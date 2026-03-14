@@ -1,8 +1,12 @@
-import { BookOpen, Trash2, Edit2, CalendarDays } from "lucide-react";
+import { BookOpen, Trash2, Edit2, CalendarDays, Clock } from "lucide-react";
+import {getTiempoRestante} from "../../helpers/taskHelpers.js";
 
 // --- VISTA DE LECTURA ---
 export const TaskView = ({ tarea, onEdit, onDelete, onToggleComplete, onToggleOpen, isOpen, getMentalLoadConfig, formatearFecha }) => {
     const tipoLabels = { 'EX': 'Examen', 'QU': 'Quiz', 'TA': 'Taller', 'PR': 'Proyecto', 'OT': 'Otro' };
+
+    //Calcular tiempo restante
+    const tiempo = getTiempoRestante(tarea.fecha_entrega);
 
     return (
         <div className="flex items-start gap-3">
@@ -30,11 +34,21 @@ export const TaskView = ({ tarea, onEdit, onDelete, onToggleComplete, onToggleOp
                         </span>
                     )}
                 </div>
+
                 {tarea.descripcion && <p className="text-sm text-gray-500 line-clamp-2">{tarea.descripcion}</p>}
+
                 <div className="mt-2 flex items-center gap-1 text-xs text-emerald-600 font-medium">
                     <CalendarDays className="w-3 h-3"/>
                     Entrega: {formatearFecha(tarea.fecha_entrega)}
                 </div>
+
+                {/* Tiempo restante de tarea - Con separación y colores dinámicos */}
+                {tiempo && !tarea.completada && (
+                    <div className={`mt-2.5 w-fit flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold border shadow-sm ${tiempo.color}`}>
+                        <Clock size={12} strokeWidth={2.5}/>
+                        {tiempo.texto}
+                    </div>
+                )}
             </div>
 
             <div className="flex gap-1 flex-shrink-0">
