@@ -8,32 +8,38 @@ import VencidasView from "./components/views/VencidasView.jsx";
 import ProximasView from "./components/views/ProximasView.jsx";
 import TodasView from "./components/views/TodasView.jsx";
 import ErrorPage from "./components/errors/ErrorPage.jsx";
+import ErrorBoundary from "./components/errors/ErrorBoundary.jsx";
+import Error500Page from "./components/errors/Error500Page.jsx";
 
 export default function App() {
 
-    const PrivateRoute = ({ children }) => {
-        return localStorage.getItem("token") ? children : <Navigate to="/login" />;
+    const PrivateRoute = ({children}) => {
+        return localStorage.getItem("token") ? children : <Navigate to="/login"/>;
     };
 
     return (
         <BrowserRouter>
-            <Routes>
-                <Route path="/login" element={<Login />} />
-                <Route path="/registro" element={<Registro />} />
+            <ErrorBoundary>
+                <Routes>
+                    <Route path="/login" element={<Login/>}/>
+                    <Route path="/registro" element={<Registro/>}/>
 
-                <Route path="*" element={<ErrorPage />} />
+                    <Route path="/500" element={<Error500Page />} />
 
-                {/* Rutas con Layout */}
-                <Route path="/" element={<PrivateRoute><Layout/></PrivateRoute>}>
-                    <Route index element={<HoyView />} />
-                    <Route path="todas" element={<TodasView />} />
-                    <Route path="hoy" element={<HoyView />} />
-                    <Route path="completadas" element={<CompletadasView />} />
-                    <Route path="vencidas" element={<VencidasView />} />
-                    <Route path="proximas" element={<ProximasView />} />
-                </Route>
+                    <Route path="*" element={<ErrorPage/>}/>
 
-            </Routes>
+                    {/* Rutas con Layout */}
+                    <Route path="/" element={<PrivateRoute><Layout/></PrivateRoute>}>
+                        <Route index element={<HoyView/>}/>
+                        <Route path="todas" element={<TodasView/>}/>
+                        <Route path="hoy" element={<HoyView/>}/>
+                        <Route path="completadas" element={<CompletadasView/>}/>
+                        <Route path="vencidas" element={<VencidasView/>}/>
+                        <Route path="proximas" element={<ProximasView/>}/>
+                    </Route>
+
+                </Routes>
+            </ErrorBoundary>
         </BrowserRouter>
     );
 }

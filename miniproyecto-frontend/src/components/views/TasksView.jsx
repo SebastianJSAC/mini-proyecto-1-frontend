@@ -16,26 +16,29 @@ export default function TasksView({ tasks, setTasks }) {
     //const [tasks, setTasks] = useState([]);
     const [showQuickTaskModal, setShowQuickTaskModal] = useState(false);
 
-
-    /*useEffect(()=>{
-        const cargar = async () => {
-            const data = await obtenerTareas(API_URL);
-
-            if(Array.isArray(data)){
-                setTasks(data);
-            }
-        };
-
-        cargar();
-    },[]);*/
+    //Filtros
+    const [tipoFiltro, setTipoFiltro] = useState("todos");
+    const [cargaFiltro, setCargaFiltro] = useState("todas");
 
     const tareasPendientes = tasks.filter(
         t => (t.parent === null || t.parent_id === null) && !t.completada
     );
 
-    const totalMisiones = tareasPendientes.length;
+    const tareasFiltradas = tareasPendientes.filter(t => {
+        const tipoOk =
+            tipoFiltro === "todos" ||
+            t.tipo_tarea.toUpperCase() === tipoFiltro.toUpperCase();
 
-    const tareasPendientesOrdenadas = [...tareasPendientes].sort((a,b)=>{
+        const cargaOk =
+            cargaFiltro === "todas" ||
+            Number(t.carga_mental) === Number(cargaFiltro);
+
+        return tipoOk && cargaOk;
+    });
+
+    const totalMisiones = tareasFiltradas.length;
+
+    const tareasPendientesOrdenadas = [...tareasFiltradas].sort((a,b)=>{
         if(!a.fecha_entrega) return 1;
         if(!b.fecha_entrega) return -1;
         return new Date(a.fecha_entrega) - new Date(b.fecha_entrega);
@@ -61,6 +64,38 @@ export default function TasksView({ tasks, setTasks }) {
                     <p className="text-gray-500">{hoy}</p>
                 </div>
 
+                <div className="flex flex-wrap gap-3 mt-4">
+
+                    {/* filtro tipo */}
+                    <select
+                        value={tipoFiltro}
+                        onChange={(e)=>setTipoFiltro(e.target.value)}
+                        className="border rounded-lg px-3 py-2 text-sm"
+                    >
+                        <option value="todos">Todos los tipos</option>
+                        <option value="EX">Examen</option>
+                        <option value="QU">Quiz</option>
+                        <option value="TA">Taller</option>
+                        <option value="PR">Proyecto</option>
+                        <option value="OT">Otro</option>
+                    </select>
+
+                    {/* filtro carga mental */}
+                    <select
+                        value={cargaFiltro}
+                        onChange={(e)=>setCargaFiltro(e.target.value)}
+                        className="border rounded-lg px-3 py-2 text-sm"
+                    >
+                        <option value="todas">Carga mental</option>
+                        <option value="1">Muy baja</option>
+                        <option value="2">Baja</option>
+                        <option value="3">Media</option>
+                        <option value="4">Alta</option>
+                        <option value="5">Muy alta</option>
+                    </select>
+
+                </div>
+
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     <div className="lg:col-span-2 space-y-6">
                         {tareaMasCercana && (
@@ -68,7 +103,7 @@ export default function TasksView({ tasks, setTasks }) {
                         )}
 
                         <TaskList
-                            tasks={tasks}
+                            tasks={tareasFiltradas}
                             setTasks={setTasks}
                             navigate={navigate}
                             API_URL={API_URL}

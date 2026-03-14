@@ -12,7 +12,7 @@ export default function TaskList({tasks,setTasks,navigate,API_URL}){
                     </div>
                     <div className="text-center">
                         <p className="text-slate-800 font-semibold text-lg">¡Todo listo!</p>
-                        <p className="text-slate-400 text-sm mt-1">No tienes tareas pendientes.</p>
+                        <p className="text-slate-400 text-sm mt-1">No hay tareas aqui.</p>
                     </div>
                 </div>
             )}
