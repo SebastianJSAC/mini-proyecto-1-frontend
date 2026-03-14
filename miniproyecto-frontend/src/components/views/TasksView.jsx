@@ -5,7 +5,7 @@ import TaskList from "../today/TaskList.jsx";
 import PomodoroTimer from "../today/PomodoroTimer.jsx";
 import {obtenerTareas} from "../../services/taskService.js";
 import QuickTaskForm from "../today/QuickTaskForm.jsx";
-import { Plus, X } from "lucide-react";
+import { Plus, X, ChevronDown, Brain, Tag } from "lucide-react";
 
 
 export default function TasksView({ tasks, setTasks }) {
@@ -64,36 +64,54 @@ export default function TasksView({ tasks, setTasks }) {
                     <p className="text-gray-500">{hoy}</p>
                 </div>
 
-                <div className="flex flex-wrap gap-3 mt-4">
+                {/* Contenedor de Filtros */}
+                <div className="flex flex-wrap items-center gap-4 mt-6 p-4 bg-gray-50/50 rounded-2xl border border-gray-100">
+                    <p>Filtrar</p>
+                    {/* Filtro Tipo */}
+                    <div className="relative flex-1 min-w-[160px]">
+                        <Tag className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+                        <select
+                            value={tipoFiltro}
+                            onChange={(e) => setTipoFiltro(e.target.value)}
+                            className="w-full pl-10 pr-10 py-2.5 bg-white border border-gray-200 rounded-xl text-sm text-gray-700 appearance-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all cursor-pointer shadow-sm"
+                        >
+                            <option value="todos">Todos los tipos</option>
+                            <option value="EX">Examen</option>
+                            <option value="QU">Quiz</option>
+                            <option value="TA">Taller</option>
+                            <option value="PR">Proyecto</option>
+                            <option value="OT">Otro</option>
+                        </select>
+                        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={16} />
+                    </div>
 
-                    {/* filtro tipo */}
-                    <select
-                        value={tipoFiltro}
-                        onChange={(e)=>setTipoFiltro(e.target.value)}
-                        className="border rounded-lg px-3 py-2 text-sm"
-                    >
-                        <option value="todos">Todos los tipos</option>
-                        <option value="EX">Examen</option>
-                        <option value="QU">Quiz</option>
-                        <option value="TA">Taller</option>
-                        <option value="PR">Proyecto</option>
-                        <option value="OT">Otro</option>
-                    </select>
+                    {/* Filtro Carga Mental */}
+                    <div className="relative flex-1 min-w-[160px]">
+                        <Brain className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+                        <select
+                            value={cargaFiltro}
+                            onChange={(e) => setCargaFiltro(e.target.value)}
+                            className="w-full pl-10 pr-10 py-2.5 bg-white border border-gray-200 rounded-xl text-sm text-gray-700 appearance-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all cursor-pointer shadow-sm"
+                        >
+                            <option value="todas">Carga mental</option>
+                            <option value="1">Muy baja</option>
+                            <option value="2">Baja</option>
+                            <option value="3">Media</option>
+                            <option value="4">Alta</option>
+                            <option value="5">Muy alta</option>
+                        </select>
+                        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={16} />
+                    </div>
 
-                    {/* filtro carga mental */}
-                    <select
-                        value={cargaFiltro}
-                        onChange={(e)=>setCargaFiltro(e.target.value)}
-                        className="border rounded-lg px-3 py-2 text-sm"
-                    >
-                        <option value="todas">Carga mental</option>
-                        <option value="1">Muy baja</option>
-                        <option value="2">Baja</option>
-                        <option value="3">Media</option>
-                        <option value="4">Alta</option>
-                        <option value="5">Muy alta</option>
-                    </select>
-
+                    {/* Botón Reset (Opcional) */}
+                    {(tipoFiltro !== "todos" || cargaFiltro !== "todas") && (
+                        <button
+                            onClick={() => {setTipoFiltro("todos"); setCargaFiltro("todas");}}
+                            className="text-xs font-medium text-gray-400 hover:text-red-500 transition-colors px-2 cursor-pointer"
+                        >
+                            Limpiar filtros
+                        </button>
+                    )}
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
