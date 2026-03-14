@@ -21,7 +21,7 @@ export default function TasksView({ tasks, setTasks }) {
     const [cargaFiltro, setCargaFiltro] = useState("todas");
 
     const tareasPendientes = tasks.filter(
-        t => (t.parent === null || t.parent_id === null) && !t.completada
+        t => (t.parent === null || t.parent_id === null)
     );
 
     const tareasFiltradas = tareasPendientes.filter(t => {
