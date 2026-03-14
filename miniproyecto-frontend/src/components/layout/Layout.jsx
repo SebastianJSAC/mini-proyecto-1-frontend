@@ -121,6 +121,7 @@ export default function Layout() {
                                 if (Array.isArray(data)) setTasks(data);
                             }}
                             navigate={navigate}
+                            onClose={() => setShowQuickTaskModal(false)}
                         />
                     </div>
                 </div>

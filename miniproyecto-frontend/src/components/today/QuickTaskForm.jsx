@@ -2,7 +2,7 @@ import {CalendarDays, Brain, Sparkles, Plus, X} from "lucide-react";
 import {useState} from "react";
 import Swal from "sweetalert2";
 
-export default function QuickTaskForm({API_URL, obtenerTareas, navigate}) {
+export default function QuickTaskForm({API_URL, obtenerTareas, navigate, onClose}) {
 
     const [quickTaskInput, setQuickTaskInput] = useState("");
     const [descripcionInput, setDescripcionInput] = useState("");
@@ -30,8 +30,6 @@ export default function QuickTaskForm({API_URL, obtenerTareas, navigate}) {
         if (!quickTaskInput.trim()) return;
 
         const token = localStorage.getItem("token");
-
-        //navigate("/hoy/crear");
 
         try {
             const response = await fetch(`${API_URL}/tareas/api/tareas/`, {
@@ -76,9 +74,9 @@ export default function QuickTaskForm({API_URL, obtenerTareas, navigate}) {
                 setSelectedTipoTarea("OT");
                 setTempSubtasks([]);
 
-                navigate("/hoy");
+                //navigate('hoy');
 
-                await Swal.fire({
+                Swal.fire({
                     toast: true,
                     position: "top-end",
                     showConfirmButton: false,
@@ -88,6 +86,11 @@ export default function QuickTaskForm({API_URL, obtenerTareas, navigate}) {
                     timerProgressBar: true
                 });
 
+                if (onClose) {
+                    onClose();
+                }
+
+                navigate("/hoy");
             }
 
         } catch (error) {
