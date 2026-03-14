@@ -7,6 +7,7 @@ import HoyView from "./components/views/HoyView.jsx";
 import VencidasView from "./components/views/VencidasView.jsx";
 import ProximasView from "./components/views/ProximasView.jsx";
 import TodasView from "./components/views/TodasView.jsx";
+import ErrorPage from "./components/errors/ErrorPage.jsx";
 
 export default function App() {
 
@@ -20,6 +21,8 @@ export default function App() {
                 <Route path="/login" element={<Login />} />
                 <Route path="/registro" element={<Registro />} />
 
+                <Route path="*" element={<ErrorPage />} />
+
                 {/* Rutas con Layout */}
                 <Route path="/" element={<PrivateRoute><Layout/></PrivateRoute>}>
                     <Route index element={<HoyView />} />
@@ -30,8 +33,6 @@ export default function App() {
                     <Route path="proximas" element={<ProximasView />} />
                 </Route>
 
-
-                <Route path="*" element={<Navigate to="/login" />} />
             </Routes>
         </BrowserRouter>
     );

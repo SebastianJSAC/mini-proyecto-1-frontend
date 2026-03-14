@@ -97,6 +97,8 @@ export default function QuickTaskForm({API_URL, obtenerTareas, navigate}) {
 
     return (<div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-md space-y-6">
         {/* Nombre de la tarea */}
+        <h1>Nueva Tarea</h1>
+
         <input
             type="text"
             value={quickTaskInput}
