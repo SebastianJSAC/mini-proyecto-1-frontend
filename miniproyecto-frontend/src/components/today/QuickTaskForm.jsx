@@ -86,10 +86,6 @@ export default function QuickTaskForm({API_URL, obtenerTareas, navigate, onClose
                     timerProgressBar: true
                 });
 
-                if (onClose) {
-                    onClose();
-                }
-
                 navigate("/hoy");
             }
 
@@ -224,7 +220,10 @@ export default function QuickTaskForm({API_URL, obtenerTareas, navigate, onClose
 
         {/* Botón Crear */}
         <button
-            onClick={handleAddTask}
+            onClick={() => {
+                handleAddTask()
+                onClose()
+            }}
             disabled={
                 !quickTaskInput.trim() ||
                 !descripcionInput.trim() ||
@@ -247,6 +246,31 @@ export default function QuickTaskForm({API_URL, obtenerTareas, navigate, onClose
   `}
         >
             Crear Tarea
+        </button>
+        <button
+            onClick={handleAddTask}
+            disabled={
+                !quickTaskInput.trim() ||
+                !descripcionInput.trim() ||
+                !selectedDueDate ||
+                !selectedTipoTarea ||
+                !cursoInput.trim() ||
+                selectedMentalLoad === undefined
+            }
+            className={`w-full py-3 rounded-xl font-semibold transition
+    ${
+                !quickTaskInput.trim() ||
+                !descripcionInput.trim() ||
+                !selectedDueDate ||
+                !selectedTipoTarea ||
+                !cursoInput.trim() ||
+                selectedMentalLoad === undefined
+                    ? "bg-transparent border border-gray-300 text-gray-400 cursor-not-allowed"
+                    : "bg-emerald-600 hover:bg-emerald-500 text-white cursor-pointer focus:outline-none"
+            }
+  `}
+        >
+            Crear Otra Tarea
         </button>
     </div>);
 }
