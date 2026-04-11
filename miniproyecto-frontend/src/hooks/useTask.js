@@ -44,7 +44,7 @@ export const useTask = (tarea, setTasks, API_URL) => {
                 setTasks(prev => [...prev, {...tareaCreada, subtareas: []}]);
             }
 
-            mostrarToast("Tarea agregada correctamente", "success");
+            mostrarToast("Tarea creada correctamente", "success");
             return true; // Para indicar éxito al componente
         } catch (error) {
             console.error("Error creando tarea:", error);
@@ -259,6 +259,40 @@ export const useTask = (tarea, setTasks, API_URL) => {
         }
     };
 
+    const handleCompleteAllHoy = async (listaHoy) => {
+        if (!listaHoy || listaHoy.length === 0) return;
+
+        const confirmacion = await Swal.fire({
+            title: "¿Completar todas?",
+            text: `Se marcarán como terminadas ${listaHoy.length} tareas con entrega hoy.`,
+            icon: "question",
+            showCancelButton: true,
+            confirmButtonColor: "#10b981",
+            confirmButtonText: "Sí, completar todo"
+        });
+
+        if (!confirmacion.isConfirmed) return;
+
+        try {
+            const promesas = listaHoy.map((t) =>
+                axios.patch(`${API_URL}/tareas/api/tareas/${t.id}/`, { completada: true }, {
+                    headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
+                })
+            );
+            await Promise.all(promesas);
+
+            const ids = listaHoy.map((t) => t.id);
+            setTasks((prev) => prev.map((t) =>
+                ids.includes(t.id) ? { ...t, completada: true } : t
+            ));
+
+            mostrarToast("Tareas de hoy completadas", "success");
+        } catch (error) {
+            console.error(error);
+            Swal.fire("Error", "No se pudieron completar las tareas", "error");
+        }
+    };
+
     return {
         handleAddTask,
         handleUpdate,
@@ -266,6 +300,7 @@ export const useTask = (tarea, setTasks, API_URL) => {
         handleAddSubtask,
         handleToggleSubtask,
         handleToggleMainTask,
-        handleCompleteAllVencidas
+        handleCompleteAllVencidas,
+        handleCompleteAllHoy
     };
 };

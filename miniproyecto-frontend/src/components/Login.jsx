@@ -33,7 +33,7 @@ export default function Login() {
                     confirmButtonColor: "#ef4444"
                 });
             }
-        } catch (error) {
+        } catch {
             Swal.fire("Error", "Error de conexión", "error");
         } finally {
             setCargando(false);
@@ -59,9 +59,11 @@ export default function Login() {
                             <input
                                 type="text"
                                 required
-                                className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 outline-none transition-all"
+                                autoComplete="username"
+                                className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl text-slate-800 placeholder:text-slate-400 hover:border-slate-300 focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 outline-none transition-all"
                                 placeholder="Tu nombre de usuario"
-                                onChange={e => setForm({...form, username: e.target.value})}
+                                value={form.username}
+                                onChange={(e) => setForm({ ...form, username: e.target.value })}
                             />
                         </div>
                     </div>
@@ -73,9 +75,11 @@ export default function Login() {
                             <input
                                 type="password"
                                 required
-                                className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 outline-none transition-all"
+                                autoComplete="current-password"
+                                className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl text-slate-800 placeholder:text-slate-400 hover:border-slate-300 focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 outline-none transition-all"
                                 placeholder="••••••••"
-                                onChange={e => setForm({...form, password: e.target.value})}
+                                value={form.password}
+                                onChange={(e) => setForm({ ...form, password: e.target.value })}
                             />
                         </div>
                     </div>
@@ -83,7 +87,7 @@ export default function Login() {
                     <button
                         type="submit"
                         disabled={cargando}
-                        className="w-full bg-emerald-600 text-white py-4 rounded-2xl font-bold text-lg hover:bg-emerald-700 hover:shadow-xl hover:shadow-emerald-200 active:scale-[0.98] transition-all disabled:bg-slate-300 flex items-center justify-center gap-2"
+                        className="w-full bg-emerald-600 text-white py-4 rounded-2xl font-bold text-lg border border-emerald-600 hover:bg-emerald-700 hover:shadow-xl hover:shadow-emerald-200/80 active:scale-[0.98] transition-all disabled:bg-slate-300 flex items-center justify-center gap-2 outline-none focus-visible:ring-4 focus-visible:ring-emerald-400/40 focus-visible:ring-offset-2"
                     >
                         {cargando ? "Validando..." : <><LogIn size={20} /> Entrar ahora</>}
                     </button>

@@ -8,7 +8,7 @@ export const TaskEditForm = ({ editData, setEditData, onSave, onCancel, getMenta
         <div className="space-y-4">
             <div className="flex gap-2">
                 <input
-                    className="flex-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none font-medium"
+                    className="flex-1 px-3 py-2 border-2 border-gray-200 rounded-xl focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none font-medium transition-colors"
                     value={editData.nombre}
                     onChange={(e) => setEditData({...editData, nombre: e.target.value})}
                     placeholder="Nombre de la tarea"
@@ -24,14 +24,14 @@ export const TaskEditForm = ({ editData, setEditData, onSave, onCancel, getMenta
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div className="flex flex-col gap-1">
                     <label className="text-[10px] font-bold text-gray-400 uppercase">Curso / Materia:</label>
-                    <div className="flex items-center gap-2 border rounded-lg px-2 py-1.5 bg-gray-50 focus-within:bg-white focus-within:border-emerald-500 transition-all">
+                    <div className="flex items-center gap-2 border-2 border-gray-200 rounded-xl px-2 py-1.5 bg-gray-50 focus-within:bg-white focus-within:border-emerald-500 focus-within:ring-2 focus-within:ring-emerald-500/20 transition-all">
                         <BookOpen size={14} className="text-gray-400"/>
                         <input className="text-sm outline-none w-full bg-transparent" value={editData.curso} onChange={(e) => setEditData({...editData, curso: e.target.value})} />
                     </div>
                 </div>
                 <div className="flex flex-col gap-1">
                     <label className="text-[10px] font-bold text-gray-400 uppercase">Tipo de Actividad:</label>
-                    <div className="flex items-center gap-2 border rounded-lg px-2 py-1.5 bg-gray-50">
+                    <div className="flex items-center gap-2 border-2 border-gray-200 rounded-xl px-2 py-1.5 bg-gray-50 focus-within:border-emerald-500 focus-within:ring-2 focus-within:ring-emerald-500/20 transition-all">
                         <Sparkles size={14} className="text-gray-400"/>
                         <select className="text-sm outline-none w-full bg-transparent" value={editData.tipo_tarea} onChange={(e) => setEditData({...editData, tipo_tarea: e.target.value})}>
                             <option value="EX">Examen</option><option value="QU">Quiz</option><option value="TA">Taller</option><option value="PR">Proyecto</option><option value="OT">Otro</option>
@@ -43,7 +43,7 @@ export const TaskEditForm = ({ editData, setEditData, onSave, onCancel, getMenta
             <div className="relative">
                 <textarea
                     maxLength={100}
-                    className="w-full px-3 py-2 border rounded-lg text-sm outline-none focus:border-emerald-500 min-h-[80px]"
+                    className="w-full px-3 py-2 border-2 border-gray-200 rounded-xl text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 min-h-[80px] transition-colors"
                     value={editData.descripcion}
                     onChange={(e) => setEditData({...editData, descripcion: e.target.value})}
                 />
@@ -53,17 +53,21 @@ export const TaskEditForm = ({ editData, setEditData, onSave, onCancel, getMenta
             <div className="flex flex-col md:flex-row gap-4">
                 <div className="flex flex-col flex-1">
                     <label className="text-[10px] text-gray-500 font-bold uppercase">Fecha de entrega:</label>
-                    <input type="datetime-local" value={editData.fecha_entrega} onChange={(e) => setEditData({...editData, fecha_entrega: e.target.value})} className="border p-2 rounded-lg text-xs mt-1 outline-none" />
+                    <input type="datetime-local" value={editData.fecha_entrega} onChange={(e) => setEditData({...editData, fecha_entrega: e.target.value})} className="border-2 border-gray-200 p-2 rounded-xl text-xs mt-1 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-colors" />
                 </div>
                 <div className="flex flex-col gap-2">
                     <label className="text-xs font-semibold text-gray-500 flex items-center gap-1"><Brain size={14}/> CARGA MENTAL:</label>
                     <div className="flex gap-2">
-                        {[1, 2, 3, 4, 5].map(n => (
+                        {[1, 2, 3, 4, 5].map(n => {
+                            const cfg = getMentalLoadConfig(n);
+                            const sel = Number(editData.carga_mental) === n;
+                            return (
                             <button key={n} type="button" onClick={() => setEditData({...editData, carga_mental: n})}
-                                    className={`w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold border transition-all ${Number(editData.carga_mental) === n ? getMentalLoadConfig(n).color + " ring-2 ring-emerald-500" : "bg-white text-gray-400"}`}>
+                                    className={`w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold border-2 transition-all focus:outline-none ${sel ? `${cfg.circle} ${cfg.ring}` : `${cfg.idle} focus-visible:ring-2 focus-visible:ring-gray-400 focus-visible:ring-offset-2`}`}>
                                 {n}
                             </button>
-                        ))}
+                            );
+                        })}
                     </div>
                 </div>
             </div>

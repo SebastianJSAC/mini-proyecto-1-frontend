@@ -1,126 +1,114 @@
-import {useOutletContext, useNavigate} from "react-router-dom";
-import {ListTodo, CheckCircle2, Clock, AlertCircle, LayoutGrid, ChevronDown, ChevronUp, Info} from "lucide-react";
+import { useOutletContext } from "react-router-dom";
+import { ListTodo, ChevronDown, ChevronUp, Info, Check } from "lucide-react";
 import TasksView from "./TasksView.jsx";
-import {useState} from "react";
+import { useState } from "react";
+
+const prioridadTooltip =
+    "Orden: tareas vencidas primero, luego próximas fechas. Para hoy, en empate por fecha se muestra antes la de menor carga mental.";
 
 export default function HoyView() {
-    const {tasks, setTasks, API_URL} = useOutletContext();
-    const navigate = useNavigate();
+    const { tasks, setTasks, API_URL, openCreateTaskModal } = useOutletContext();
     const [isHoyExpanded, setIsHoyExpanded] = useState(true);
 
     const hoy = new Date();
-    const ahora = new Date();
-    const limite = new Date();
-    limite.setDate(ahora.getDate() + 2);
 
-    // --- LÓGICA DE FILTRADO ---
     const filterHoy = (t) => {
         if (!t.fecha_entrega || t.completada) return false;
         const f = new Date(t.fecha_entrega);
-        return f.getDate() === hoy.getDate() && f.getMonth() === hoy.getMonth() && f.getFullYear() === hoy.getFullYear();
+        return (
+            f.getDate() === hoy.getDate() &&
+            f.getMonth() === hoy.getMonth() &&
+            f.getFullYear() === hoy.getFullYear()
+        );
     };
 
-    // Filtrar por prioridad
     const getPrioridad = (t) => {
         if (!t.fecha_entrega) return 3;
-
         const fecha = new Date(t.fecha_entrega);
-
         const esHoy =
             fecha.getDate() === hoy.getDate() &&
             fecha.getMonth() === hoy.getMonth() &&
             fecha.getFullYear() === hoy.getFullYear();
-
-        if (fecha < hoy) return 0; // vencidas
-        if (esHoy) return 1; // hoy
-        return 2; // proximas
+        if (fecha < hoy) return 0;
+        if (esHoy) return 1;
+        return 2;
     };
 
-    //Variables de hoy, urgentes... etc
-    const tareasHoy = tasks.filter(filterHoy).sort((a, b) => {
+    const tareasHoy = tasks
+        .filter(filterHoy)
+        .sort((a, b) => {
             const pA = getPrioridad(a);
             const pB = getPrioridad(b);
-
             if (pA !== pB) return pA - pB;
-
-            // empate → menor carga mental
             return (a.carga_mental ?? 999) - (b.carga_mental ?? 999);
         });
-    const urgentes = tasks.filter(t => {
-        if (!t.fecha_entrega || t.completada) return false;
-        const f = new Date(t.fecha_entrega);
-        return f >= ahora && f <= limite;
-    }).length;
-    const completadas = tasks.filter(t => t.completada).length;
-    const vencidas = tasks.filter(t => t.fecha_entrega && new Date(t.fecha_entrega) < hoy && !t.completada).length;
-    const todas = tasks.length;
 
-    // --- COMPONENTE DE TARJETA ESTADÍSTICA ---
-    const StatCard = ({title, count, icon: Icon, color, path, isLarge = false}) => (
-        <div
-            onClick={() => path && navigate(path)}
-            className={`bg-white p-6 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-all cursor-pointer group ${isLarge ? 'md:col-span-2' : ''}`}
-        >
-            <div className="flex items-center justify-between">
-                <div>
-                    <p className="text-sm font-medium text-gray-500">{title}</p>
-                    <h3 className="text-3xl font-bold text-gray-900 mt-1">{count}</h3>
+    if (tareasHoy.length === 0) {
+        return (
+            <div className="w-full flex flex-col items-center justify-center min-h-[calc(100dvh-10rem)] px-6 py-12 text-center">
+                <div className="w-20 h-20 rounded-full bg-emerald-100 flex items-center justify-center border border-emerald-200/80 shadow-sm">
+                    <Check size={36} className="text-emerald-600" strokeWidth={2.5} aria-hidden />
                 </div>
-                <div className={`p-3 rounded-xl ${color} text-white group-hover:scale-110 transition-transform`}>
-                    <Icon size={24}/>
-                </div>
+                <p className="text-slate-800 font-semibold text-xl mt-8">¡Todo listo!</p>
+                <p className="text-slate-500 text-sm mt-2 max-w-sm leading-relaxed">
+                    No hay tareas con fecha de entrega para hoy. Cuando agregues una con fecha de hoy, aparecerá aquí.
+                </p>
+                <button
+                    type="button"
+                    onClick={() => openCreateTaskModal?.()}
+                    className="mt-8 inline-flex items-center justify-center px-8 py-3.5 rounded-2xl bg-emerald-600 text-white text-sm font-bold hover:bg-emerald-700 shadow-lg shadow-emerald-200/80 active:scale-[0.98] transition-all outline-none focus-visible:ring-4 focus-visible:ring-emerald-400/40 focus-visible:ring-offset-2"
+                >
+                    Crear tarea
+                </button>
             </div>
-        </div>
-    );
+        );
+    }
 
     return (
-        <div className="space-y-8">
-            {/* --- GRID DE ESTADÍSTICAS --- */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                <StatCard title="Vencidas" count={vencidas} icon={Clock} color="bg-red-500" path="/vencidas"/>
-                <StatCard title="Proximas" count={urgentes} icon={AlertCircle} color="bg-orange-500" path="/proximas"/>
-                <StatCard title="Completadas" count={completadas} icon={CheckCircle2} color="bg-emerald-500"
-                          path="/completadas"/>
-                <StatCard title="Todas" count={todas} icon={LayoutGrid} color="bg-blue-500" path="/todas"/>
-            </div>
-
-            {/* --- MENSAJE DE PRIORIZACIÓN --- */}
-            <div
-                className="flex items-start gap-2 text-sm text-gray-600 bg-blue-50 border border-blue-200 rounded-xl p-3">
-                <AlertCircle size={16} className="mt-[2px] text-blue-500 shrink-0"/>
-                <span>
-                    Priorizamos tu éxito: tienes tarjetas para viajar entre lo <strong>Vencido</strong>, luego <strong>Próximas</strong>, después <strong>Completadas</strong>.
-                    En caso de empate en fecha para hoy, verás primero la tarea de <strong>menor carga mental</strong>.
-                </span>
-            </div>
-
-            {/* --- TARJETA EXPANDIBLE DE HOY --- */}
-            <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-                <div
-                    onClick={() => setIsHoyExpanded(!isHoyExpanded)}
-                    className="p-6 flex items-center justify-between cursor-pointer hover:bg-gray-50 transition-colors"
-                >
-                    <div className="flex items-center gap-4">
-                        <div className="p-2 bg-emerald-100 text-emerald-600 rounded-lg">
-                            <ListTodo size={20}/>
-                        </div>
-                        <div>
-                            <h2 className="text-xl font-bold text-gray-900">Tareas para Hoy</h2>
-                            <p className="text-sm text-gray-500">Tienes {tareasHoy.length} tareas pendientes</p>
-                        </div>
+        <div className="w-full space-y-8">
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                <div className="p-6 flex items-center justify-between gap-4 border-b border-slate-100">
+                    <div className="flex flex-1 items-center justify-between gap-4 min-w-0">
+                        <button
+                            type="button"
+                            onClick={() => setIsHoyExpanded(!isHoyExpanded)}
+                            className="flex flex-1 items-center gap-4 min-w-0 text-left rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 -m-2 p-2 hover:bg-slate-50 transition-colors"
+                        >
+                            <div className="p-2 bg-emerald-100 text-emerald-700 rounded-lg border border-emerald-200 shrink-0">
+                                <ListTodo size={20} />
+                            </div>
+                            <div className="min-w-0 flex-1">
+                                <h2 className="text-xl font-bold text-slate-900">Tareas para hoy</h2>
+                                <p className="text-sm text-slate-500">
+                                    {tareasHoy.length}{" "}
+                                    {tareasHoy.length === 1 ? "tarea pendiente" : "tareas pendientes"}
+                                </p>
+                            </div>
+                            {isHoyExpanded ? (
+                                <ChevronUp className="text-slate-400 shrink-0" aria-hidden />
+                            ) : (
+                                <ChevronDown className="text-slate-400 shrink-0" aria-hidden />
+                            )}
+                        </button>
+                        <button
+                            type="button"
+                            className="p-2 rounded-xl text-slate-400 hover:text-emerald-700 hover:bg-emerald-50 border border-transparent hover:border-emerald-200 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 shrink-0"
+                            title={prioridadTooltip}
+                            aria-label="Cómo priorizamos las tareas"
+                        >
+                            <Info size={20} aria-hidden />
+                        </button>
                     </div>
-                    {isHoyExpanded ? <ChevronUp className="text-gray-400"/> : <ChevronDown className="text-gray-400"/>}
                 </div>
 
                 {isHoyExpanded && (
-                    <div className="p-6 border-t border-gray-100 bg-gray-50/30">
-                        {tareasHoy.length > 0 ? (
-                            <TasksView tasks={tareasHoy} setTasks={setTasks} API_URL={API_URL}/>
-                        ) : (
-                            <div className="text-center py-10">
-                                <p className="text-gray-400 font-medium">No hay tareas programadas para hoy. ¿Que tal si comienzas creando una?</p>
-                            </div>
-                        )}
+                    <div className="p-6 border-t border-slate-100 bg-slate-50/40">
+                        <TasksView
+                            tasks={tareasHoy}
+                            setTasks={setTasks}
+                            API_URL={API_URL}
+                            embedded
+                        />
                     </div>
                 )}
             </div>

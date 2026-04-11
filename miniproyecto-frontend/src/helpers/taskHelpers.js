@@ -1,12 +1,51 @@
+/** Colores alineados: borde coherente con el relleno del nivel (círculos y chips). */
 export const getMentalLoadConfig = (level) => {
+    const n = Number(level);
     const configs = {
-        1: { color: "bg-green-100 text-green-700 border-green-200", label: "Muy Baja" },
-        2: { color: "bg-emerald-100 text-emerald-700 border-emerald-200", label: "Baja" },
-        3: { color: "bg-yellow-100 text-yellow-700 border-yellow-200", label: "Media" },
-        4: { color: "bg-orange-100 text-orange-700 border-orange-200", label: "Alta" },
-        5: { color: "bg-red-100 text-red-700 border-red-200", label: "Muy Alta" },
+        1: {
+            label: "Muy baja",
+            chip: "bg-green-100 text-green-800 border-green-600",
+            circle: "bg-green-500 text-white border-green-600",
+            idle: "bg-white text-green-700 border-green-300 hover:border-green-500",
+            ring: "ring-2 ring-green-500/50 ring-offset-2 ring-offset-white",
+        },
+        2: {
+            label: "Baja",
+            chip: "bg-emerald-100 text-emerald-900 border-emerald-600",
+            circle: "bg-emerald-500 text-white border-emerald-600",
+            idle: "bg-white text-emerald-800 border-emerald-300 hover:border-emerald-500",
+            ring: "ring-2 ring-emerald-500/50 ring-offset-2 ring-offset-white",
+        },
+        3: {
+            label: "Media",
+            chip: "bg-yellow-100 text-yellow-900 border-yellow-500",
+            circle: "bg-yellow-400 text-yellow-950 border-yellow-600",
+            idle: "bg-white text-yellow-800 border-yellow-300 hover:border-yellow-500",
+            ring: "ring-2 ring-yellow-500/50 ring-offset-2 ring-offset-white",
+        },
+        4: {
+            label: "Alta",
+            chip: "bg-orange-100 text-orange-900 border-orange-600",
+            circle: "bg-orange-500 text-white border-orange-600",
+            idle: "bg-white text-orange-800 border-orange-300 hover:border-orange-500",
+            ring: "ring-2 ring-orange-500/50 ring-offset-2 ring-offset-white",
+        },
+        5: {
+            label: "Muy alta",
+            chip: "bg-red-100 text-red-900 border-red-600",
+            circle: "bg-red-500 text-white border-red-600",
+            idle: "bg-white text-red-800 border-red-300 hover:border-red-500",
+            ring: "ring-2 ring-red-500/50 ring-offset-2 ring-offset-white",
+        },
     };
-    return configs[level] || { color: "bg-gray-100 text-gray-500 border-gray-200", label: "N/A" };
+    const fallback = {
+        label: "N/A",
+        chip: "bg-gray-100 text-gray-600 border-gray-400",
+        circle: "bg-gray-400 text-white border-gray-500",
+        idle: "bg-white text-gray-500 border-gray-200 hover:border-gray-400",
+        ring: "ring-2 ring-gray-400/50 ring-offset-2 ring-offset-white",
+    };
+    return configs[n] || fallback;
 };
 
 export const formatearFecha = (fechaStr) => {
