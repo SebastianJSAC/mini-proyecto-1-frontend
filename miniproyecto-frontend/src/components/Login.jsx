@@ -23,6 +23,10 @@ export default function Login() {
 
             if (res.ok) {
                 localStorage.setItem("token", data.access);
+                localStorage.setItem(
+                    "nombreMostrar",
+                    (data.nombre_mostrar || form.username || "").trim() || "Usuario"
+                );
                 navigate("/hoy");
             } else {
                 // SweetAlert dinámico según el error_type del backend

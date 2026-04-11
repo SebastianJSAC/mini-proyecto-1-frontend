@@ -1,8 +1,8 @@
 import { Link, useLocation, Outlet, useNavigate } from "react-router-dom";
-import { Plus, ListTodo, LogOut, X, LayoutGrid, BarChart3 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { Plus, ListTodo, LogOut, X, LayoutGrid, BarChart3, MoreVertical } from "lucide-react";
+import { useEffect, useState, useRef } from "react";
 import QuickTaskForm from "../today/QuickTaskForm.jsx";
-import { obtenerTareas } from "../../services/taskService.js";
+import { obtenerTareas, clearStoredSession } from "../../services/taskService.js";
 
 const pathTitles = {
     "/hoy": "Hoy",
@@ -17,9 +17,15 @@ export default function Layout() {
 
     const [showQuickTaskModal, setShowQuickTaskModal] = useState(false);
     const [tasks, setTasks] = useState([]);
+    const [nombreUsuario] = useState(
+        () => localStorage.getItem("nombreMostrar")?.trim() || "Usuario"
+    );
+    const [userMenuOpen, setUserMenuOpen] = useState(false);
+    const userMenuRef = useRef(null);
 
     const handleLogout = () => {
-        localStorage.removeItem("token");
+        clearStoredSession();
+        setUserMenuOpen(false);
         navigate("/login");
     };
 
@@ -31,6 +37,24 @@ export default function Layout() {
         cargar();
     }, []);
 
+    useEffect(() => {
+        if (!userMenuOpen) return;
+        const close = (e) => {
+            if (userMenuRef.current && !userMenuRef.current.contains(e.target)) {
+                setUserMenuOpen(false);
+            }
+        };
+        const onKey = (e) => {
+            if (e.key === "Escape") setUserMenuOpen(false);
+        };
+        document.addEventListener("pointerdown", close);
+        document.addEventListener("keydown", onKey);
+        return () => {
+            document.removeEventListener("pointerdown", close);
+            document.removeEventListener("keydown", onKey);
+        };
+    }, [userMenuOpen]);
+
     const menuItems = [
         { to: "/hoy", label: "Hoy", icon: ListTodo },
         { to: "/actividades", label: "Actividades", icon: LayoutGrid },
@@ -38,6 +62,7 @@ export default function Layout() {
     ];
 
     const headerTitle = pathTitles[location.pathname] || "FocusFlow";
+    const inicialUsuario = (nombreUsuario || "?").charAt(0).toUpperCase();
 
     return (
         <div className="flex h-screen bg-slate-50 overflow-hidden">
@@ -70,15 +95,54 @@ export default function Layout() {
                     })}
                 </nav>
 
-                <div className="p-4 border-t border-slate-100">
+                <div className="p-4 border-t border-slate-100 relative z-20" ref={userMenuRef}>
                     <button
                         type="button"
-                        onClick={handleLogout}
-                        className="flex items-center gap-3 px-4 py-3 w-full rounded-xl text-sm font-medium text-red-600 hover:bg-red-50 border border-transparent outline-none focus-visible:ring-2 focus-visible:ring-red-400 focus-visible:ring-offset-2 transition-colors"
+                        id="user-menu-trigger"
+                        onClick={() => setUserMenuOpen((o) => !o)}
+                        aria-expanded={userMenuOpen}
+                        aria-haspopup="menu"
+                        aria-controls="user-menu"
+                        className="flex items-center gap-3 px-3 py-2.5 w-full rounded-xl bg-slate-50 border border-slate-100 hover:bg-slate-100/80 outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 transition-colors text-left"
                     >
-                        <LogOut size={20} />
-                        Cerrar sesión
+                        <div
+                            className="w-9 h-9 rounded-full bg-emerald-100 text-emerald-800 flex items-center justify-center text-sm font-bold shrink-0"
+                            aria-hidden
+                        >
+                            {inicialUsuario}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                            <p className="text-[11px] uppercase tracking-wide text-slate-400 font-semibold">
+                                Sesión
+                            </p>
+                            <p className="text-sm font-semibold text-slate-800 truncate" title={nombreUsuario}>
+                                {nombreUsuario}
+                            </p>
+                        </div>
+                        <MoreVertical
+                            size={18}
+                            className={`shrink-0 text-slate-400 ${userMenuOpen ? "text-slate-600" : ""}`}
+                            aria-hidden
+                        />
                     </button>
+                    {userMenuOpen && (
+                        <div
+                            id="user-menu"
+                            role="menu"
+                            aria-labelledby="user-menu-trigger"
+                            className="absolute bottom-full left-4 right-4 mb-1 py-1 rounded-xl bg-white border border-slate-200 shadow-lg shadow-slate-200/80 overflow-hidden"
+                        >
+                            <button
+                                type="button"
+                                role="menuitem"
+                                onClick={handleLogout}
+                                className="flex items-center gap-3 px-3 py-2.5 w-full text-sm font-medium text-red-600 hover:bg-red-50 outline-none focus-visible:bg-red-50 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-red-200 transition-colors"
+                            >
+                                <LogOut size={18} aria-hidden />
+                                Cerrar sesión
+                            </button>
+                        </div>
+                    )}
                 </div>
             </aside>
 

@@ -1,5 +1,5 @@
 import { useOutletContext } from "react-router-dom";
-import { ListTodo, ChevronDown, ChevronUp, Info, Check } from "lucide-react";
+import { ListTodo, ChevronDown, ChevronUp, Info } from "lucide-react";
 import TasksView from "./TasksView.jsx";
 import { useState } from "react";
 
@@ -45,18 +45,21 @@ export default function HoyView() {
 
     if (tareasHoy.length === 0) {
         return (
-            <div className="w-full flex flex-col items-center justify-center min-h-[calc(100dvh-10rem)] px-6 py-12 text-center">
-                <div className="w-20 h-20 rounded-full bg-emerald-100 flex items-center justify-center border border-emerald-200/80 shadow-sm">
-                    <Check size={36} className="text-emerald-600" strokeWidth={2.5} aria-hidden />
+            <div className="flex min-h-[calc(100dvh-8.5rem)] w-full flex-col items-center justify-center px-6 text-center">
+                <div
+                    className="flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl border border-emerald-200 bg-emerald-100 text-emerald-700 shadow-sm"
+                    aria-hidden
+                >
+                    <ListTodo size={36} strokeWidth={2} />
                 </div>
-                <p className="text-slate-800 font-semibold text-xl mt-8">¡Todo listo!</p>
-                <p className="text-slate-500 text-sm mt-2 max-w-sm leading-relaxed">
-                    No hay tareas con fecha de entrega para hoy. Cuando agregues una con fecha de hoy, aparecerá aquí.
+                <p className="mt-8 text-lg font-semibold text-slate-800">No hay tareas programadas.</p>
+                <p className="mt-2 max-w-md text-sm leading-relaxed text-slate-500">
+                    No tienes tareas pendientes con fecha de entrega para hoy. Crea una nueva para verla aquí.
                 </p>
                 <button
                     type="button"
                     onClick={() => openCreateTaskModal?.()}
-                    className="mt-8 inline-flex items-center justify-center px-8 py-3.5 rounded-2xl bg-emerald-600 text-white text-sm font-bold hover:bg-emerald-700 shadow-lg shadow-emerald-200/80 active:scale-[0.98] transition-all outline-none focus-visible:ring-4 focus-visible:ring-emerald-400/40 focus-visible:ring-offset-2"
+                    className="mt-8 inline-flex items-center justify-center rounded-2xl bg-emerald-600 px-8 py-3.5 text-sm font-bold text-white shadow-lg shadow-emerald-200/80 outline-none transition-all hover:bg-emerald-700 focus-visible:ring-4 focus-visible:ring-emerald-400/40 focus-visible:ring-offset-2 active:scale-[0.98]"
                 >
                     Crear tarea
                 </button>
@@ -65,7 +68,7 @@ export default function HoyView() {
     }
 
     return (
-        <div className="w-full space-y-8">
+        <div className="mx-auto w-full max-w-3xl space-y-8">
             <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
                 <div className="p-6 flex items-center justify-between gap-4 border-b border-slate-100">
                     <div className="flex flex-1 items-center justify-between gap-4 min-w-0">

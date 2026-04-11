@@ -1,5 +1,6 @@
 import {LogOut} from "lucide-react";
 import {Link} from "react-router-dom";
+import { clearStoredSession } from "../../services/taskService.js";
 
 const ErrorPage = () => {
     return (
@@ -40,7 +41,7 @@ const ErrorPage = () => {
                         </Link>
                         <Link
                             to="/login"
-                            onClick={() => localStorage.removeItem("token")}
+                            onClick={() => clearStoredSession()}
                             className="inline-flex items-center justify-center gap-2 px-8 py-3 border border-slate-200 text-base font-medium rounded-xl text-slate-600 bg-white hover:bg-slate-50 transition-all duration-200 w-full sm:w-auto"
                         >
                             <LogOut size={18}/>

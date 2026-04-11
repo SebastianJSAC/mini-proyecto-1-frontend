@@ -1,5 +1,10 @@
 export const getToken = () => localStorage.getItem("token");
 
+export const clearStoredSession = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("nombreMostrar");
+};
+
 const request = async (url, method = "GET", body = null) => {
 
     const config = {
@@ -19,7 +24,7 @@ const request = async (url, method = "GET", body = null) => {
 
         // token expirado o no autorizado
         if (res.status === 401) {
-            localStorage.removeItem("token");
+            clearStoredSession();
             window.location.href = "/login";
             return;
         }
