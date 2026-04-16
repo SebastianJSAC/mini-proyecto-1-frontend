@@ -18,8 +18,21 @@ export const useTask = (tarea, setTasks, API_URL) => {
                 fecha_entrega: taskData.fecha_entrega,
                 carga_mental: taskData.carga_mental || null,
                 tipo_tarea: taskData.tipo_tarea,
-                curso: taskData.curso || null
+                curso: taskData.curso || null,
+                duracion_estimada_minutos: Math.min(
+                    360,
+                    Math.max(15, Number(taskData.duracion_estimada_minutos) || 60)
+                ),
+                prioridad: taskData.prioridad || "MEDIA",
+                fecha_planificada: taskData.fecha_planificada || null,
             });
+
+            if (res.carga_alerta) {
+                mostrarToast(
+                    res.carga_alerta.mensaje,
+                    res.carga_alerta.tipo === "overload" ? "warning" : "info"
+                );
+            }
 
             const tareaCreada = res.data || res;
 
@@ -36,7 +49,7 @@ export const useTask = (tarea, setTasks, API_URL) => {
                 // Actualizar estado local con subtareas incluidas
                 const tareaCompleta = {
                     ...tareaCreada,
-                    subtareas: resSubtareas.map(r => r.data || r)
+                    subtareas: resSubtareas.map((r) => r.data || r),
                 };
                 setTasks(prev => [...prev, tareaCompleta]);
             } else {
@@ -62,8 +75,21 @@ export const useTask = (tarea, setTasks, API_URL) => {
                 carga_mental: editData.carga_mental,
                 fecha_entrega: editData.fecha_entrega ? new Date(editData.fecha_entrega).toISOString() : null,
                 tipo_tarea: editData.tipo_tarea,
-                curso: editData.curso
+                curso: editData.curso,
+                duracion_estimada_minutos: Math.min(
+                    360,
+                    Math.max(15, Number(editData.duracion_estimada_minutos) || 60)
+                ),
+                prioridad: editData.prioridad || "MEDIA",
+                fecha_planificada: editData.fecha_planificada?.trim() || null,
             });
+
+            if (res.carga_alerta) {
+                mostrarToast(
+                    res.carga_alerta.mensaje,
+                    res.carga_alerta.tipo === "overload" ? "warning" : "info"
+                );
+            }
 
             //Actualizar cada subtarea
             await Promise.all(
@@ -75,10 +101,8 @@ export const useTask = (tarea, setTasks, API_URL) => {
                 )
             );
 
-            updateLocalTask({
-                ...res.data, subtareas:
-                editData.subtareas
-            });
+            const merged = { ...(res.data || {}), subtareas: editData.subtareas };
+            updateLocalTask(merged);
 
             mostrarToast('Actualizado', "success")
             return true;

@@ -1,4 +1,4 @@
-import { BookOpen, Trash2, Edit2, CalendarDays, Clock } from "lucide-react";
+import { BookOpen, Trash2, Edit2, CalendarDays, Clock, Timer, Flag } from "lucide-react";
 import {getTiempoRestante} from "../../helpers/taskHelpers.js";
 
 // --- VISTA DE LECTURA ---
@@ -16,6 +16,7 @@ export const TaskView = ({
     onDetailsClick,
 }) => {
     const tipoLabels = { 'EX': 'Examen', 'QU': 'Quiz', 'TA': 'Taller', 'PR': 'Proyecto', 'OT': 'Otro' };
+    const prioridadLabels = { BAJA: "Prioridad baja", MEDIA: "Prioridad media", ALTA: "Prioridad alta" };
 
     //Calcular tiempo restante
     const tiempo = getTiempoRestante(tarea.fecha_entrega);
@@ -59,6 +60,21 @@ export const TaskView = ({
                         className={`px-2 py-0.5 rounded-full flex items-center justify-center text-[10px] font-bold border-2 flex-shrink-0 ${getMentalLoadConfig(tarea.carga_mental).chip}`}
                     >
                         {getMentalLoadConfig(tarea.carga_mental).label}
+                    </span>
+                )}
+                {tarea.duracion_estimada_minutos != null && (
+                    <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200 text-[10px] font-bold uppercase flex items-center gap-1">
+                        <Timer size={10} aria-hidden />
+                        {tarea.duracion_estimada_minutos} min
+                    </span>
+                )}
+                {tarea.prioridad && (
+                    <span
+                        className="px-2 py-0.5 rounded-full bg-violet-50 text-violet-700 border border-violet-100 text-[10px] font-bold uppercase flex items-center gap-1"
+                        title={prioridadLabels[tarea.prioridad] || tarea.prioridad}
+                    >
+                        <Flag size={10} aria-hidden />
+                        {tarea.prioridad}
                     </span>
                 )}
             </div>

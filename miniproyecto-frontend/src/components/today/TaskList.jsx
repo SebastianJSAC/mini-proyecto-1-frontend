@@ -1,21 +1,32 @@
 import { Check, Clock, CalendarDays, AlertCircle, CheckCheck } from "lucide-react";
 import TaskCard from "../TaskCard.jsx";
-import {useTask} from "../../hooks/useTask.js";
+import { useTask } from "../../hooks/useTask.js";
+import { isSameLocalDay, startOfLocalDay } from "../../helpers/cargaHelpers.js";
 
 export default function TaskList({ tasks, setTasks, navigate, API_URL }) {
 
     //Custom Hook useTask
     const action = useTask(tasks, setTasks, API_URL);
 
-    // Agrupar tareas
-    const hoy = new Date();
-    hoy.setHours(0, 0, 0, 0);
+    const ahora = new Date();
+    const inicioHoy = startOfLocalDay(ahora);
+    const finHoy = new Date(inicioHoy);
+    finHoy.setHours(23, 59, 59, 999);
 
     const grupos = {
-        vencidas: tasks.filter(t => !t.completada && t.fecha_entrega && new Date(t.fecha_entrega) < hoy),
-        hoy: tasks.filter(t => !t.completada && t.fecha_entrega && new Date(t.fecha_entrega).toDateString() === hoy.toDateString()),
-        proximas: tasks.filter(t => !t.completada && t.fecha_entrega && new Date(t.fecha_entrega) > new Date(hoy.getTime() + 86400000 - 1)),
-        completadas: tasks.filter(t => t.completada)
+        vencidas: tasks.filter(
+            (t) => !t.completada && t.fecha_entrega && new Date(t.fecha_entrega) < ahora
+        ),
+        hoy: tasks.filter((t) => {
+            if (t.completada || !t.fecha_entrega) return false;
+            const f = new Date(t.fecha_entrega);
+            if (!isSameLocalDay(f, ahora)) return false;
+            return f >= ahora;
+        }),
+        proximas: tasks.filter(
+            (t) => !t.completada && t.fecha_entrega && new Date(t.fecha_entrega) > finHoy
+        ),
+        completadas: tasks.filter((t) => t.completada),
     };
 
     // Helper para renderizar un grupo

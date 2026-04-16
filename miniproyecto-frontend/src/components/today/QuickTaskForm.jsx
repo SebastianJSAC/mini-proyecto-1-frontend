@@ -15,6 +15,8 @@ export default function QuickTaskForm({ API_URL, setTasks, obtenerTareas, onClos
         carga_mental: "",
         tipo_tarea: "OT",
         curso: "",
+        duracion_estimada_minutos: "60",
+        prioridad: "MEDIA",
     };
 
     const [form, setForm] = useState(initialFormState);
@@ -41,6 +43,9 @@ export default function QuickTaskForm({ API_URL, setTasks, obtenerTareas, onClos
             ...form,
             fecha_entrega: form.fecha_entrega ? new Date(form.fecha_entrega).toISOString() : null,
             carga_mental: form.carga_mental ? Number(form.carga_mental) : null,
+            duracion_estimada_minutos: Math.min(360, Math.max(15, Number(form.duracion_estimada_minutos) || 60)),
+            prioridad: form.prioridad || "MEDIA",
+            fecha_planificada: form.fecha_entrega ? form.fecha_entrega.slice(0, 10) : null,
         };
 
         const success = await handleAddTask(taskData, tempSubtasks);
@@ -196,6 +201,40 @@ export default function QuickTaskForm({ API_URL, setTasks, obtenerTareas, onClos
                         placeholder="Nombre del curso"
                         className={inputClass}
                     />
+                </div>
+
+                <div>
+                    <label htmlFor="qt-duracion" className={labelClass}>
+                        Duración estimada (min)
+                    </label>
+                    <input
+                        id="qt-duracion"
+                        name="duracion_estimada_minutos"
+                        type="number"
+                        min={15}
+                        max={360}
+                        step={15}
+                        value={form.duracion_estimada_minutos}
+                        onChange={handleChange}
+                        className={inputClass}
+                    />
+                </div>
+
+                <div>
+                    <label htmlFor="qt-prioridad" className={labelClass}>
+                        Prioridad
+                    </label>
+                    <select
+                        id="qt-prioridad"
+                        name="prioridad"
+                        value={form.prioridad}
+                        onChange={handleChange}
+                        className={inputClass}
+                    >
+                        <option value="BAJA">Baja</option>
+                        <option value="MEDIA">Media</option>
+                        <option value="ALTA">Alta</option>
+                    </select>
                 </div>
 
                 <div>

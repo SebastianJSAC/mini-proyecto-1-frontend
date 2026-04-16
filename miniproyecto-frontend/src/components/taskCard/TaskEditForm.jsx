@@ -50,6 +50,45 @@ export const TaskEditForm = ({ editData, setEditData, onSave, onCancel, getMenta
                 <div className="absolute bottom-2 right-2 text-[10px] font-mono text-gray-400">{100 - editData.descripcion.length}</div>
             </div>
 
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="flex flex-col flex-1">
+                    <label className="text-[10px] text-gray-500 font-bold uppercase">Fecha planificada (trabajo):</label>
+                    <input
+                        type="date"
+                        value={editData.fecha_planificada || ""}
+                        onChange={(e) => setEditData({ ...editData, fecha_planificada: e.target.value })}
+                        className="border-2 border-gray-200 p-2 rounded-xl text-xs mt-1 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-colors"
+                    />
+                    <p className="text-[10px] text-gray-400 mt-1">Vacío = usar fecha de entrega para la vista «Hoy».</p>
+                </div>
+                <div className="flex flex-col flex-1">
+                    <label className="text-[10px] text-gray-500 font-bold uppercase">Duración estimada (min):</label>
+                    <input
+                        type="number"
+                        min={15}
+                        max={360}
+                        step={15}
+                        value={editData.duracion_estimada_minutos}
+                        onChange={(e) =>
+                            setEditData({ ...editData, duracion_estimada_minutos: Number(e.target.value) || 60 })
+                        }
+                        className="border-2 border-gray-200 p-2 rounded-xl text-xs mt-1 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-colors"
+                    />
+                </div>
+                <div className="flex flex-col flex-1">
+                    <label className="text-[10px] text-gray-500 font-bold uppercase">Prioridad:</label>
+                    <select
+                        className="border-2 border-gray-200 p-2 rounded-xl text-xs mt-1 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-colors bg-white"
+                        value={editData.prioridad}
+                        onChange={(e) => setEditData({ ...editData, prioridad: e.target.value })}
+                    >
+                        <option value="BAJA">Baja</option>
+                        <option value="MEDIA">Media</option>
+                        <option value="ALTA">Alta</option>
+                    </select>
+                </div>
+            </div>
+
             <div className="flex flex-col md:flex-row gap-4">
                 <div className="flex flex-col flex-1">
                     <label className="text-[10px] text-gray-500 font-bold uppercase">Fecha de entrega:</label>

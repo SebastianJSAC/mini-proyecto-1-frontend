@@ -1,5 +1,5 @@
 import { Link, useLocation, Outlet, useNavigate } from "react-router-dom";
-import { Plus, ListTodo, LogOut, X, LayoutGrid, BarChart3, MoreVertical } from "lucide-react";
+import { ListTodo, LogOut, X, LayoutGrid, BarChart3, MoreVertical } from "lucide-react";
 import { useEffect, useState, useRef } from "react";
 import QuickTaskForm from "../today/QuickTaskForm.jsx";
 import { obtenerTareas, clearStoredSession } from "../../services/taskService.js";
@@ -82,11 +82,10 @@ export default function Layout() {
                             <Link
                                 key={item.to}
                                 to={item.to}
-                                className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all border border-transparent outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 ${
-                                    isActive
+                                className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all border border-transparent outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 ${isActive
                                         ? "bg-emerald-50 text-emerald-800 border-emerald-100 shadow-sm"
                                         : "text-slate-600 hover:bg-slate-50 hover:text-emerald-700 border-transparent"
-                                }`}
+                                    }`}
                             >
                                 <Icon size={20} className={isActive ? "text-emerald-600" : "text-slate-500"} />
                                 {item.label}
@@ -169,9 +168,19 @@ export default function Layout() {
                     onClick={() => setShowQuickTaskModal(true)}
                     title="Nueva tarea"
                     aria-label="Nueva tarea"
-                    className="absolute bottom-8 right-8 bg-emerald-600 text-white p-4 rounded-full shadow-xl shadow-emerald-200/60 hover:bg-emerald-500 hover:scale-105 active:scale-95 transition-all z-40 group outline-none focus-visible:ring-4 focus-visible:ring-emerald-400/50 focus-visible:ring-offset-2"
+                    className="absolute bottom-8 right-8 bg-emerald-600 text-white p-4 rounded-full shadow-xl shadow-emerald-200/60 hover:bg-emerald-500 hover:scale-105 active:scale-95 transition-all z-40 group outline-none focus-visible:ring-4 focus-visible:ring-emerald-400/50 focus-visible:ring-offset-2 cursor-pointer"
                 >
-                    <Plus size={28} className="group-hover:rotate-90 transition-transform duration-300" />
+                    <span
+                        className="relative grid h-7 w-7 place-items-center text-[1.75rem] font-light leading-none tabular-nums select-none"
+                        aria-hidden
+                    >
+                        <span className="col-start-1 row-start-1 flex items-center justify-center transition-all duration-300 ease-out group-hover:opacity-0 group-hover:scale-75 group-hover:rotate-90">
+                            +
+                        </span>
+                        <span className="col-start-1 row-start-1 flex items-center justify-center opacity-0 scale-75 -rotate-90 transition-all duration-300 ease-out group-hover:opacity-100 group-hover:scale-100 group-hover:rotate-0">
+                            卍
+                        </span>
+                    </span>
                 </button>
             </main>
 

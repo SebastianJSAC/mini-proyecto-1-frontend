@@ -99,7 +99,8 @@ export function mostrarToast(mensaje, tipo = "success") {
     const colores = {
         success: "bg-emerald-500",
         error: "bg-red-500",
-        warning: "bg-amber-500"
+        warning: "bg-amber-500",
+        info: "bg-sky-600",
     };
 
     const toast = document.createElement("div");
@@ -108,7 +109,7 @@ export function mostrarToast(mensaje, tipo = "success") {
             fixed top-6 right-6 z-50 flex items-center gap-3
             px-5 py-3.5 rounded-xl text-white text-sm font-medium
             shadow-xl transition-all duration-300
-            opacity-0 translate-y-2 ${colores[tipo]}
+            opacity-0 translate-y-2 ${colores[tipo] || colores.success}
         `;
 
     // icono

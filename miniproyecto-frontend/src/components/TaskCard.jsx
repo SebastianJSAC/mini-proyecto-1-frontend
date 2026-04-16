@@ -32,7 +32,10 @@ export default function TaskCard({
             fecha_entrega: tarea.fecha_entrega ? tarea.fecha_entrega.slice(0, 16) : "",
             tipo_tarea: tarea.tipo_tarea || "OT",
             curso: tarea.curso || "",
-            subtareas: tarea.subtareas || []
+            duracion_estimada_minutos: tarea.duracion_estimada_minutos ?? 60,
+            prioridad: tarea.prioridad || "MEDIA",
+            fecha_planificada: tarea.fecha_planificada || "",
+            subtareas: tarea.subtareas || [],
         });
     },[tarea, isEditing]);
 
@@ -54,9 +57,29 @@ export default function TaskCard({
         "bg-white border-2 rounded-xl p-5 shadow-sm space-y-4 transition outline-none border-gray-200 hover:border-emerald-200 hover:shadow-md focus-within:border-emerald-400 focus-within:ring-2 focus-within:ring-emerald-500/25";
     const kanbanShell = `bg-white rounded-lg border border-slate-200/90 p-4 space-y-3 shadow-sm hover:shadow-md transition outline-none border-l-4 ${cardAccent} focus-within:ring-2 focus-within:ring-emerald-500/20`;
 
+    const handleKanbanCardClick = (e) => {
+        if (!isKanban || isEditing) return;
+        if (e.target.closest("button, a, input, textarea, select, [data-no-toggle]")) return;
+        setOpen((o) => !o);
+    };
+
     return (
         <div
-            className={`${isKanban ? kanbanShell : defaultShell} ${isEditing ? "border-emerald-500 ring-2 ring-emerald-100 !border-2" : ""}`}
+            role={isKanban && !isEditing ? "button" : undefined}
+            tabIndex={isKanban && !isEditing ? 0 : undefined}
+            aria-expanded={isKanban && !isEditing ? open : undefined}
+            onClick={handleKanbanCardClick}
+            onKeyDown={
+                isKanban && !isEditing
+                    ? (e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                              e.preventDefault();
+                              setOpen((o) => !o);
+                          }
+                      }
+                    : undefined
+            }
+            className={`${isKanban ? kanbanShell : defaultShell} ${isKanban && !isEditing ? "cursor-pointer focus-visible:ring-2 focus-visible:ring-emerald-500/50 focus-visible:ring-offset-2" : ""} ${isEditing ? "border-emerald-500 ring-2 ring-emerald-100 !border-2" : ""}`}
         >
             {isEditing && !isKanban ? (
                 <TaskEditForm
@@ -69,22 +92,24 @@ export default function TaskCard({
             ) : (
                 <TaskView
                     tarea={tarea}
-                    onEdit={() => setIsEditing(true)}
-                    onDelete={actions.handleDelete}
-                    onToggleComplete={actions.handleToggleMainTask}
+                    onEdit={(e) => {
+                        e?.stopPropagation?.();
+                        setIsEditing(true);
+                    }}
+                    onDelete={(e) => {
+                        e?.stopPropagation?.();
+                        actions.handleDelete();
+                    }}
+                    onToggleComplete={(e) => {
+                        e?.stopPropagation?.();
+                        actions.handleToggleMainTask();
+                    }}
                     onToggleOpen={() => setOpen(!open)}
                     isOpen={open}
                     getMentalLoadConfig={getMentalLoadConfig}
                     formatearFecha={formatearFecha}
                     verticalLayout={verticalLayout}
                     compact={isKanban}
-                    onDetailsClick={
-                        isKanban
-                            ? () => {
-                                  if (!open) setOpen(true);
-                              }
-                            : undefined
-                    }
                 />
             )}
 
@@ -119,13 +144,15 @@ export default function TaskCard({
                 )}
 
             {open && (
-                <SubtaskSection
-                    subtareas={tarea.subtareas || []}
-                    subtaskInput={subtaskInput}
-                    setSubtaskInput={setSubtaskInput}
-                    onAdd={() => actions.handleAddSubtask(subtaskInput, setSubtaskInput)}
-                    onToggle={actions.handleToggleSubtask}
-                />
+                <div data-no-toggle onClick={(e) => e.stopPropagation()} className="space-y-2">
+                    <SubtaskSection
+                        subtareas={tarea.subtareas || []}
+                        subtaskInput={subtaskInput}
+                        setSubtaskInput={setSubtaskInput}
+                        onAdd={() => actions.handleAddSubtask(subtaskInput, setSubtaskInput)}
+                        onToggle={actions.handleToggleSubtask}
+                    />
+                </div>
             )}
         </div>
     );

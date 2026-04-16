@@ -6,46 +6,17 @@ import TaskCard from "../TaskCard.jsx";
 
 import { useTask } from "../../hooks/useTask.js";
 
-
+import { isSameLocalDay } from "../../helpers/cargaHelpers.js";
 
 function isRootTask(t) {
-
     return t.parent == null && t.parent_id == null;
-
 }
 
-
-
-function startOfToday() {
-
-    const d = new Date();
-
-    d.setHours(0, 0, 0, 0);
-
-    return d;
-
-}
-
-
-
+/** Entrega es hoy (día calendario local). */
 function isDueToday(fechaEntrega) {
-
     if (!fechaEntrega) return false;
-
     const f = new Date(fechaEntrega);
-
-    const h = startOfToday();
-
-    return (
-
-        f.getDate() === h.getDate() &&
-
-        f.getMonth() === h.getMonth() &&
-
-        f.getFullYear() === h.getFullYear()
-
-    );
-
+    return isSameLocalDay(f, new Date());
 }
 
 
@@ -125,17 +96,17 @@ export default function ActividadesView() {
 
 
     const vencidas = roots
-
         .filter((t) => t.fecha_entrega && new Date(t.fecha_entrega) < ahora && !t.completada)
-
         .sort((a, b) => new Date(a.fecha_entrega) - new Date(b.fecha_entrega));
 
-
-
+    // «Hoy»: entrega hoy pero aún no vencida por hora (las vencidas van solo en la columna Vencidas)
     const hoy = roots
-
-        .filter((t) => !t.completada && t.fecha_entrega && isDueToday(t.fecha_entrega))
-
+        .filter((t) => {
+            if (t.completada || !t.fecha_entrega) return false;
+            const f = new Date(t.fecha_entrega);
+            if (!isDueToday(t.fecha_entrega)) return false;
+            return f >= ahora;
+        })
         .sort((a, b) => (a.carga_mental ?? 999) - (b.carga_mental ?? 999));
 
 
