@@ -2,12 +2,13 @@ import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { LogIn, Lock, User, ShieldCheck } from "lucide-react";
 import Swal from "sweetalert2";
+import { getApiBaseUrl } from "../helpers/apiBase.js";
 
 export default function Login() {
     const [form, setForm] = useState({ username: "", password: "" });
     const [cargando, setCargando] = useState(false);
     const navigate = useNavigate();
-    const API_URL = import.meta.env.VITE_API_URL?.replace(/\/$/, "");
+    const API_URL = getApiBaseUrl();
 
     const handleSubmit = async (e) => {
         e.preventDefault();

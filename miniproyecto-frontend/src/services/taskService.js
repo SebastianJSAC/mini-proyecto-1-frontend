@@ -1,3 +1,5 @@
+import { normalizeApiBaseUrl } from "../helpers/apiBase.js";
+
 export const getToken = () => localStorage.getItem("token");
 
 export const clearStoredSession = () => {
@@ -57,33 +59,31 @@ const request = async (url, method = "GET", body = null) => {
     return res.json();
 };
 
-export const obtenerTareas = (API_URL) =>
-    request(`${API_URL}/tareas/api/tareas/`);
+const root = (u) => `${normalizeApiBaseUrl(u)}/tareas/api`;
+
+export const obtenerTareas = (API_URL) => request(`${root(API_URL)}/tareas/`);
 
 export const actualizarTarea = (API_URL, id, data) =>
-    request(`${API_URL}/tareas/api/tareas/${id}/`, "PATCH", data);
+    request(`${root(API_URL)}/tareas/${id}/`, "PATCH", data);
 
-export const eliminarTarea = (API_URL, id) =>
-    request(`${API_URL}/tareas/api/tareas/${id}/`, "DELETE");
+export const eliminarTarea = (API_URL, id) => request(`${root(API_URL)}/tareas/${id}/`, "DELETE");
 
-export const crearTarea = (API_URL, data) =>
-    request(`${API_URL}/tareas/api/tareas/`, "POST", data);
+export const crearTarea = (API_URL, data) => request(`${root(API_URL)}/tareas/`, "POST", data);
 
 /** Sprint 3 — carga diaria */
-export const obtenerCargaConfig = (API_URL) =>
-    request(`${API_URL}/tareas/api/usuario/carga-config/`);
+export const obtenerCargaConfig = (API_URL) => request(`${root(API_URL)}/usuario/carga-config/`);
 
 export const actualizarCargaConfig = (API_URL, data) =>
-    request(`${API_URL}/tareas/api/usuario/carga-config/`, "PATCH", data);
+    request(`${root(API_URL)}/usuario/carga-config/`, "PATCH", data);
 
 export const obtenerResumenDia = (API_URL, fechaYMD) =>
-    request(`${API_URL}/tareas/api/dias/${fechaYMD}/resumen/`);
+    request(`${root(API_URL)}/dias/${fechaYMD}/resumen/`);
 
 export const validarCargaDia = (API_URL, fechaYMD, cambios) =>
-    request(`${API_URL}/tareas/api/dias/${fechaYMD}/validar-carga/`, "POST", { cambios });
+    request(`${root(API_URL)}/dias/${fechaYMD}/validar-carga/`, "POST", { cambios });
 
 export const obtenerRecomendacionesDia = (API_URL, fechaYMD, body = {}) =>
-    request(`${API_URL}/tareas/api/dias/${fechaYMD}/recomendaciones/`, "POST", body);
+    request(`${root(API_URL)}/dias/${fechaYMD}/recomendaciones/`, "POST", body);
 
 export const reprogramarTareasDia = (API_URL, fechaYMD, movimientos) =>
-    request(`${API_URL}/tareas/api/dias/${fechaYMD}/reprogramar/`, "POST", { movimientos });
+    request(`${root(API_URL)}/dias/${fechaYMD}/reprogramar/`, "POST", { movimientos });

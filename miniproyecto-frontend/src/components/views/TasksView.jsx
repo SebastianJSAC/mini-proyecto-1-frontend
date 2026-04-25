@@ -6,9 +6,10 @@ import PomodoroTimer from "../today/PomodoroTimer.jsx";
 import { obtenerTareas } from "../../services/taskService.js";
 import QuickTaskForm from "../today/QuickTaskForm.jsx";
 import { Plus, X, ChevronDown, Brain, Tag } from "lucide-react";
+import { normalizeApiBaseUrl } from "../../helpers/apiBase.js";
 
 export default function TasksView({ tasks, setTasks, API_URL: apiProp, embedded = false }) {
-    const API_URL = apiProp ?? import.meta.env.VITE_API_URL?.replace(/\/$/, "");
+    const API_URL = normalizeApiBaseUrl(apiProp ?? import.meta.env.VITE_API_URL);
     const navigate = useNavigate();
     const [showQuickTaskModal, setShowQuickTaskModal] = useState(false);
 

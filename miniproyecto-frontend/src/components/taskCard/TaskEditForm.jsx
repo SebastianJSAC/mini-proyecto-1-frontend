@@ -62,18 +62,24 @@ export const TaskEditForm = ({ editData, setEditData, onSave, onCancel, getMenta
                     <p className="text-[10px] text-gray-400 mt-1">Vacío = usar fecha de entrega para la vista «Hoy».</p>
                 </div>
                 <div className="flex flex-col flex-1">
-                    <label className="text-[10px] text-gray-500 font-bold uppercase">Duración estimada (min):</label>
+                    <label className="text-[10px] text-gray-500 font-bold uppercase">Duración estimada (h):</label>
                     <input
                         type="number"
-                        min={15}
-                        max={360}
-                        step={15}
-                        value={editData.duracion_estimada_minutos}
-                        onChange={(e) =>
-                            setEditData({ ...editData, duracion_estimada_minutos: Number(e.target.value) || 60 })
-                        }
+                        min={0.25}
+                        max={6}
+                        step={0.25}
+                        value={(editData.duracion_estimada_minutos ?? 60) / 60}
+                        onChange={(e) => {
+                            const h = Number(e.target.value);
+                            const min =
+                                Number.isFinite(h) && h > 0
+                                    ? Math.min(360, Math.max(15, Math.round(h * 60)))
+                                    : 60;
+                            setEditData({ ...editData, duracion_estimada_minutos: min });
+                        }}
                         className="border-2 border-gray-200 p-2 rounded-xl text-xs mt-1 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-colors"
                     />
+                    <p className="text-[10px] text-gray-400 mt-1">15 min a 6 h (pasos 15 min).</p>
                 </div>
                 <div className="flex flex-col flex-1">
                     <label className="text-[10px] text-gray-500 font-bold uppercase">Prioridad:</label>

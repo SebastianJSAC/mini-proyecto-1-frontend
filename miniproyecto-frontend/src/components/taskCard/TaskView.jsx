@@ -1,5 +1,5 @@
 import { BookOpen, Trash2, Edit2, CalendarDays, Clock, Timer, Flag } from "lucide-react";
-import {getTiempoRestante} from "../../helpers/taskHelpers.js";
+import { getTiempoRestante, formatDuracionEstimadaHoras } from "../../helpers/taskHelpers.js";
 
 // --- VISTA DE LECTURA ---
 export const TaskView = ({
@@ -65,7 +65,7 @@ export const TaskView = ({
                 {tarea.duracion_estimada_minutos != null && (
                     <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200 text-[10px] font-bold uppercase flex items-center gap-1">
                         <Timer size={10} aria-hidden />
-                        {tarea.duracion_estimada_minutos} min
+                        {formatDuracionEstimadaHoras(tarea.duracion_estimada_minutos)}
                     </span>
                 )}
                 {tarea.prioridad && (

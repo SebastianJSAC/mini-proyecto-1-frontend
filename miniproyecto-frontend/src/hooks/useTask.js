@@ -1,7 +1,10 @@
 import Swal from "sweetalert2";
-import {actualizarTarea, eliminarTarea, crearTarea} from "../services/taskService";
+import { actualizarTarea, eliminarTarea, crearTarea } from "../services/taskService";
 import axios from "axios";
-import {mostrarToast} from '../helpers/taskHelpers.js'
+import { mostrarToast } from "../helpers/taskHelpers.js";
+import { normalizeApiBaseUrl } from "../helpers/apiBase.js";
+
+const tasksApiUrl = (base, id) => `${normalizeApiBaseUrl(base)}/tareas/api/tareas/${id}/`;
 
 export const useTask = (tarea, setTasks, API_URL) => {
 
@@ -264,7 +267,7 @@ export const useTask = (tarea, setTasks, API_URL) => {
 
         try {
             const promesas = vencidas.map(t =>
-                axios.patch(`${API_URL}/tareas/api/tareas/${t.id}/`, {completada: true}, {
+                axios.patch(tasksApiUrl(API_URL, t.id), { completada: true }, {
                     headers: {Authorization: `Bearer ${localStorage.getItem("token")}`}
                 })
             );
@@ -299,7 +302,7 @@ export const useTask = (tarea, setTasks, API_URL) => {
 
         try {
             const promesas = listaHoy.map((t) =>
-                axios.patch(`${API_URL}/tareas/api/tareas/${t.id}/`, { completada: true }, {
+                axios.patch(tasksApiUrl(API_URL, t.id), { completada: true }, {
                     headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
                 })
             );

@@ -1,8 +1,9 @@
 import { Link, useLocation, Outlet, useNavigate } from "react-router-dom";
-import { ListTodo, LogOut, X, LayoutGrid, BarChart3, MoreVertical } from "lucide-react";
+import { ListTodo, LogOut, X, LayoutGrid, BarChart3, MoreVertical, CirclePlus } from "lucide-react";
 import { useEffect, useState, useRef } from "react";
 import QuickTaskForm from "../today/QuickTaskForm.jsx";
 import { obtenerTareas, clearStoredSession } from "../../services/taskService.js";
+import { getApiBaseUrl } from "../../helpers/apiBase.js";
 
 const pathTitles = {
     "/hoy": "Hoy",
@@ -13,7 +14,7 @@ const pathTitles = {
 export default function Layout() {
     const location = useLocation();
     const navigate = useNavigate();
-    const API_URL = import.meta.env.VITE_API_URL?.replace(/\/$/, "");
+    const API_URL = getApiBaseUrl();
 
     const [showQuickTaskModal, setShowQuickTaskModal] = useState(false);
     const [tasks, setTasks] = useState([]);
@@ -178,7 +179,7 @@ export default function Layout() {
                             +
                         </span>
                         <span className="col-start-1 row-start-1 flex items-center justify-center opacity-0 scale-75 -rotate-90 transition-all duration-300 ease-out group-hover:opacity-100 group-hover:scale-100 group-hover:rotate-0">
-                            卍
+                            <CirclePlus className="h-7 w-7" strokeWidth={1.75} aria-hidden />
                         </span>
                     </span>
                 </button>

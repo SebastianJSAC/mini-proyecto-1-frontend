@@ -1,6 +1,7 @@
 import { CalendarDays, Brain, Sparkles, Plus, X } from "lucide-react";
 import { useState } from "react";
 import { useTask } from "../../hooks/useTask.js";
+import { duracionMinutosDesdeHoras } from "../../helpers/taskHelpers.js";
 
 const inputClass =
     "w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-slate-800 text-sm placeholder:text-slate-400 outline-none transition-all focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 hover:border-slate-300";
@@ -15,7 +16,7 @@ export default function QuickTaskForm({ API_URL, setTasks, obtenerTareas, onClos
         carga_mental: "",
         tipo_tarea: "OT",
         curso: "",
-        duracion_estimada_minutos: "60",
+        duracion_estimada_horas: "1",
         prioridad: "MEDIA",
     };
 
@@ -40,10 +41,13 @@ export default function QuickTaskForm({ API_URL, setTasks, obtenerTareas, onClos
         if (!form.nombre.trim()) return;
 
         const taskData = {
-            ...form,
+            nombre: form.nombre,
+            descripcion: form.descripcion,
             fecha_entrega: form.fecha_entrega ? new Date(form.fecha_entrega).toISOString() : null,
             carga_mental: form.carga_mental ? Number(form.carga_mental) : null,
-            duracion_estimada_minutos: Math.min(360, Math.max(15, Number(form.duracion_estimada_minutos) || 60)),
+            tipo_tarea: form.tipo_tarea,
+            curso: form.curso,
+            duracion_estimada_minutos: duracionMinutosDesdeHoras(form.duracion_estimada_horas),
             prioridad: form.prioridad || "MEDIA",
             fecha_planificada: form.fecha_entrega ? form.fecha_entrega.slice(0, 10) : null,
         };
@@ -205,19 +209,20 @@ export default function QuickTaskForm({ API_URL, setTasks, obtenerTareas, onClos
 
                 <div>
                     <label htmlFor="qt-duracion" className={labelClass}>
-                        Duración estimada (min)
+                        Duración estimada (horas)
                     </label>
                     <input
                         id="qt-duracion"
-                        name="duracion_estimada_minutos"
+                        name="duracion_estimada_horas"
                         type="number"
-                        min={15}
-                        max={360}
-                        step={15}
-                        value={form.duracion_estimada_minutos}
+                        min={0.25}
+                        max={6}
+                        step={0.25}
+                        value={form.duracion_estimada_horas}
                         onChange={handleChange}
                         className={inputClass}
                     />
+                    <p className="text-xs text-slate-400 mt-1">De 0,25 h (15 min) a 6 h. Pasos de 15 min.</p>
                 </div>
 
                 <div>

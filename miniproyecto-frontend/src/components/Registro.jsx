@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { UserPlus, Mail, Lock, User, ArrowLeft, UserCircle2 } from "lucide-react";
 import Swal from "sweetalert2";
+import { getApiBaseUrl } from "../helpers/apiBase.js";
 
 const inputClass =
     "w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl text-slate-800 placeholder:text-slate-400 outline-none transition-all focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 hover:border-slate-300";
@@ -19,7 +20,7 @@ export default function Registro() {
     });
     const [cargando, setCargando] = useState(false);
     const navigate = useNavigate();
-    const API_URL = import.meta.env.VITE_API_URL?.replace(/\/$/, "");
+    const API_URL = getApiBaseUrl();
 
     const manejarRegistro = async (e) => {
         e.preventDefault();

@@ -48,6 +48,24 @@ export const getMentalLoadConfig = (level) => {
     return configs[n] || fallback;
 };
 
+/** Horas introducidas en UI → minutos para la API (entre 15 y 360). */
+export function duracionMinutosDesdeHoras(horas) {
+    const h = Number(horas);
+    if (!Number.isFinite(h) || h <= 0) return 60;
+    return Math.min(360, Math.max(15, Math.round(h * 60)));
+}
+
+/** Minutos de la API → texto corto en horas para chips / vista. */
+export function formatDuracionEstimadaHoras(minutos) {
+    if (minutos == null) return "";
+    const h = minutos / 60;
+    const rounded = Math.round(h * 100) / 100;
+    const str = Number.isInteger(rounded)
+        ? String(rounded)
+        : String(rounded).replace(/\.?0+$/, "");
+    return `${str} h`;
+}
+
 export const formatearFecha = (fechaStr) => {
     if (!fechaStr) return "Sin fecha";
     const fecha = new Date(fechaStr);
