@@ -93,5 +93,9 @@ export const validarCargaDia = (API_URL, fechaYMD, cambios) =>
 export const obtenerRecomendacionesDia = (API_URL, fechaYMD, body = {}) =>
     request(`${root(API_URL)}/dias/${fechaYMD}/recomendaciones/`, "POST", body);
 
+// Análisis integral del día (nivel de carga + recomendaciones agrupadas).
+export const obtenerAnalisisDia = (API_URL, fechaYMD, ventanaDias = 14) =>
+    request(`${root(API_URL)}/dias/${fechaYMD}/analisis/?ventana_dias=${ventanaDias}`);
+
 export const reprogramarTareasDia = (API_URL, fechaYMD, movimientos) =>
     request(`${root(API_URL)}/dias/${fechaYMD}/reprogramar/`, "POST", { movimientos });

@@ -4,10 +4,12 @@ import { useCallback, useEffect, useState } from "react";
 import TasksView from "./TasksView.jsx";
 import DayLoadMeter from "../carga/DayLoadMeter.jsx";
 import OverloadPanel from "../carga/OverloadPanel.jsx";
+import DayAnalysisPanel from "../carga/DayAnalysisPanel.jsx";
 import { fechaPlanTarea, toYMDLocal } from "../../helpers/cargaHelpers.js";
 import { mostrarToast } from "../../helpers/taskHelpers.js";
 import {
     actualizarCargaConfig,
+    obtenerAnalisisDia,
     obtenerCargaConfig,
     obtenerRecomendacionesDia,
     obtenerResumenDia,
@@ -32,6 +34,8 @@ export default function HoyView() {
     const [applying, setApplying] = useState(false);
     const [showLimit, setShowLimit] = useState(false);
     const [limiteHoras, setLimiteHoras] = useState(6);
+    const [analisis, setAnalisis] = useState(null);
+    const [loadingAnalisis, setLoadingAnalisis] = useState(false);
 
     const reloadTasks = useCallback(async () => {
         if (!API_URL) return;
@@ -54,9 +58,24 @@ export default function HoyView() {
         }
     }, [API_URL, todayStr]);
 
+    const loadAnalisis = useCallback(async () => {
+        if (!API_URL) return;
+        setLoadingAnalisis(true);
+        try {
+            const a = await obtenerAnalisisDia(API_URL, todayStr);
+            setAnalisis(a);
+        } catch (e) {
+            console.error(e);
+            setAnalisis(null);
+        } finally {
+            setLoadingAnalisis(false);
+        }
+    }, [API_URL, todayStr]);
+
     useEffect(() => {
         loadResumen();
-    }, [loadResumen, tasks]);
+        loadAnalisis();
+    }, [loadResumen, loadAnalisis, tasks]);
 
     const loadRecomendaciones = useCallback(async () => {
         if (!API_URL) return;
@@ -246,6 +265,7 @@ export default function HoyView() {
                 onApplyOne={onApplyOne}
                 applying={applying}
             />
+            <DayAnalysisPanel analisis={analisis} loading={loadingAnalisis} />
         </>
     );
 
