@@ -1,5 +1,11 @@
 import Swal from "sweetalert2";
-import { actualizarTarea, eliminarTarea, crearTarea } from "../services/taskService";
+import {
+    actualizarTarea,
+    eliminarTarea,
+    crearTarea,
+    posponerTarea,
+    reanudarTarea,
+} from "../services/taskService";
 import axios from "axios";
 import { mostrarToast } from "../helpers/taskHelpers.js";
 import { normalizeApiBaseUrl } from "../helpers/apiBase.js";
@@ -181,6 +187,89 @@ export const useTask = (tarea, setTasks, API_URL) => {
         }
     };
 
+    // Aplicar cambios devueltos por el backend a una subtarea concreta dentro de la tarea actual
+    const patchSubtaskInState = (subId, changes) => {
+        setTasks(prev => prev.map(t => {
+            if (t.id !== tarea.id) return t;
+            const newSubs = (t.subtareas || []).map(s =>
+                s.id === subId ? { ...s, ...changes } : s
+            );
+            return { ...t, subtareas: newSubs };
+        }));
+    };
+
+    // Posponer / reanudar una tarea (raíz de la tarjeta o una de sus subtareas)
+    const handlePosponerTarea = async (task) => {
+        if (!task) return;
+
+        const esRaiz = task.id === tarea.id;
+
+        if (task.completada) {
+            mostrarToast(
+                esRaiz ? "No puedes posponer una tarea completada" : "No puedes posponer una subtarea completada",
+                "warning"
+            );
+            return;
+        }
+
+        const aplicarEnEstado = (updated) => {
+            if (esRaiz) {
+                updateLocalTask(updated);
+            } else {
+                patchSubtaskInState(task.id, updated);
+            }
+        };
+
+        if (task.pospuesta) {
+            try {
+                const res = await reanudarTarea(API_URL, task.id);
+                const updated = res?.data || {
+                    pospuesta: false,
+                    nota_posponer: null,
+                    pospuesta_en: null,
+                };
+                aplicarEnEstado(updated);
+                mostrarToast(esRaiz ? "Tarea reanudada" : "Subtarea reanudada", "success");
+            } catch (e) {
+                console.error(e);
+                mostrarToast(e.message || "Intenta nuevamente", "error");
+            }
+            return;
+        }
+
+        const { value: notaRaw, isConfirmed } = await Swal.fire({
+            title: esRaiz ? "Posponer tarea" : "Posponer subtarea",
+            html: esRaiz
+                ? `<p class="text-sm text-slate-600">Añade una <strong>nota</strong> con el motivo o cuándo retomarla. La tarea quedará como <strong>pospuesta</strong> y <strong>no aparecerá en Hoy</strong> hasta que la reanudes.</p>`
+                : `<p class="text-sm text-slate-600">Añade una <strong>nota</strong> con el motivo o cuándo retomarla. La subtarea quedará marcada como <strong>pospuesta</strong> y saldrá del avance activo.</p>`,
+            input: "textarea",
+            inputLabel: "Nota (opcional, máx. 500)",
+            inputPlaceholder: "Ej: La retomo mañana cuando reciba el material…",
+            inputAttributes: { maxlength: 500 },
+            showCancelButton: true,
+            confirmButtonColor: "#d97706",
+            confirmButtonText: "Posponer",
+            cancelButtonText: "Cancelar",
+        });
+
+        if (!isConfirmed) return;
+
+        const nota = (notaRaw || "").trim();
+
+        try {
+            const res = await posponerTarea(API_URL, task.id, nota);
+            const updated = res?.data || {
+                pospuesta: true,
+                nota_posponer: nota || null,
+            };
+            aplicarEnEstado(updated);
+            mostrarToast(esRaiz ? "Tarea pospuesta" : "Subtarea pospuesta", "success");
+        } catch (e) {
+            console.error(e);
+            mostrarToast(e.message || "Intenta nuevamente", "error");
+        }
+    };
+
     const handleToggleSubtask = async (sub) => {
         const nuevoEstado = !sub.completada;
         try {
@@ -210,6 +299,7 @@ export const useTask = (tarea, setTasks, API_URL) => {
 
         } catch (e) {
             console.error(e);
+            mostrarToast(e.message || "Intenta nuevamente", "error");
         }
     };
 
@@ -326,6 +416,7 @@ export const useTask = (tarea, setTasks, API_URL) => {
         handleDelete,
         handleAddSubtask,
         handleToggleSubtask,
+        handlePosponerTarea,
         handleToggleMainTask,
         handleCompleteAllVencidas,
         handleCompleteAllHoy

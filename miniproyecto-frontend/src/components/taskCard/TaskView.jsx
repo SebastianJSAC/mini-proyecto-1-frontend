@@ -1,4 +1,4 @@
-import { BookOpen, Trash2, Edit2, CalendarDays, Clock, Timer, Flag } from "lucide-react";
+import { BookOpen, Trash2, Edit2, CalendarDays, Clock, Timer, Flag, StickyNote } from "lucide-react";
 import { getTiempoRestante, formatDuracionEstimadaHoras } from "../../helpers/taskHelpers.js";
 
 // --- VISTA DE LECTURA ---
@@ -7,6 +7,7 @@ export const TaskView = ({
     onEdit,
     onDelete,
     onToggleComplete,
+    onPosponer,
     onToggleOpen,
     isOpen,
     getMentalLoadConfig,
@@ -25,11 +26,25 @@ export const TaskView = ({
         <button
             type="button"
             onClick={onToggleComplete}
-            className={`px-3 py-1.5 rounded-md text-xs font-bold flex-shrink-0 transition-colors border border-transparent focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 ${tarea.completada ? "bg-green-100 text-green-700 border-green-200" : "bg-slate-100 text-slate-600 hover:bg-slate-200 hover:border-slate-300"}`}
+            disabled={tarea.pospuesta}
+            title={tarea.pospuesta ? "Reanúdala para marcarla completada" : undefined}
+            className={`px-3 py-1.5 rounded-md text-xs font-bold flex-shrink-0 transition-colors border border-transparent focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 ${tarea.completada ? "bg-green-100 text-green-700 border-green-200" : "bg-slate-100 text-slate-600 hover:bg-slate-200 hover:border-slate-300"} ${tarea.pospuesta ? "opacity-50 cursor-not-allowed" : ""}`}
         >
             {tarea.completada ? "Completada" : "○ Pendiente"}
         </button>
     );
+
+    const posponerRaizBtn =
+        onPosponer && !tarea.completada ? (
+            <button
+                type="button"
+                onClick={onPosponer}
+                title={tarea.pospuesta ? "Reanudar tarea" : "Posponer tarea (con nota)"}
+                className={`px-3 py-1.5 rounded-md text-xs font-bold flex-shrink-0 border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-amber-500/50 focus-visible:ring-offset-1 ${tarea.pospuesta ? "border-emerald-200 bg-emerald-50 text-emerald-800 hover:bg-emerald-100" : "border-amber-200 bg-white text-amber-800 hover:bg-amber-50"}`}
+            >
+                {tarea.pospuesta ? "Reanudar" : "Posponer"}
+            </button>
+        ) : null;
 
     const actionButtons = (
         <div className="flex gap-1 flex-shrink-0">
@@ -77,7 +92,19 @@ export const TaskView = ({
                         {tarea.prioridad}
                     </span>
                 )}
+                {tarea.pospuesta && (
+                    <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300 text-[10px] font-bold uppercase">
+                        Pospuesta
+                    </span>
+                )}
             </div>
+
+            {tarea.pospuesta && tarea.nota_posponer && (
+                <div className="mt-1 flex items-start gap-1.5 text-[11px] text-amber-900/90">
+                    <StickyNote size={12} className="mt-0.5 shrink-0" aria-hidden />
+                    <span className="italic">{tarea.nota_posponer}</span>
+                </div>
+            )}
 
             {tarea.descripcion && <p className="text-sm text-gray-500 line-clamp-2">{tarea.descripcion}</p>}
 
@@ -120,7 +147,10 @@ export const TaskView = ({
         return (
             <div className={`flex flex-col w-full ${compact ? "gap-3" : "gap-4"}`}>
                 <div className={`flex flex-wrap items-center justify-between ${compact ? "gap-2" : "gap-3"}`}>
-                    {completeBtn}
+                    <div className="flex flex-wrap items-center gap-2">
+                        {completeBtn}
+                        {posponerRaizBtn}
+                    </div>
                     {actionButtons}
                 </div>
                 {detailsInteractive}
@@ -130,7 +160,10 @@ export const TaskView = ({
 
     return (
         <div className="flex items-start gap-3">
-            <div className="mt-1">{completeBtn}</div>
+            <div className="mt-1 flex flex-col gap-1 shrink-0">
+                {completeBtn}
+                {posponerRaizBtn}
+            </div>
             {detailsInteractive}
             {actionButtons}
         </div>

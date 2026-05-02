@@ -79,7 +79,7 @@ export default function TaskCard({
                       }
                     : undefined
             }
-            className={`${isKanban ? kanbanShell : defaultShell} ${isKanban && !isEditing ? "cursor-pointer focus-visible:ring-2 focus-visible:ring-emerald-500/50 focus-visible:ring-offset-2" : ""} ${isEditing ? "border-emerald-500 ring-2 ring-emerald-100 !border-2" : ""}`}
+            className={`${isKanban ? kanbanShell : defaultShell} ${tarea.pospuesta ? "border-amber-200/90 bg-amber-50/25" : ""} ${isKanban && !isEditing ? "cursor-pointer focus-visible:ring-2 focus-visible:ring-emerald-500/50 focus-visible:ring-offset-2" : ""} ${isEditing ? "border-emerald-500 ring-2 ring-emerald-100 !border-2" : ""}`}
         >
             {isEditing && !isKanban ? (
                 <TaskEditForm
@@ -103,6 +103,10 @@ export default function TaskCard({
                     onToggleComplete={(e) => {
                         e?.stopPropagation?.();
                         actions.handleToggleMainTask();
+                    }}
+                    onPosponer={(e) => {
+                        e?.stopPropagation?.();
+                        actions.handlePosponerTarea(tarea);
                     }}
                     onToggleOpen={() => setOpen(!open)}
                     isOpen={open}
@@ -151,6 +155,7 @@ export default function TaskCard({
                         setSubtaskInput={setSubtaskInput}
                         onAdd={() => actions.handleAddSubtask(subtaskInput, setSubtaskInput)}
                         onToggle={actions.handleToggleSubtask}
+                        onPosponer={actions.handlePosponerTarea}
                     />
                 </div>
             )}

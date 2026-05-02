@@ -1,5 +1,5 @@
 import { useOutletContext } from "react-router-dom";
-import { ListTodo, ChevronDown, ChevronUp, Info } from "lucide-react";
+import { ListTodo, ChevronDown, ChevronUp, Info, PauseCircle } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import TasksView from "./TasksView.jsx";
 import DayLoadMeter from "../carga/DayLoadMeter.jsx";
@@ -21,6 +21,7 @@ const prioridadTooltip =
 export default function HoyView() {
     const { tasks, setTasks, API_URL, openCreateTaskModal } = useOutletContext();
     const [isHoyExpanded, setIsHoyExpanded] = useState(true);
+    const [isPospExpanded, setIsPospExpanded] = useState(true);
 
     const hoy = new Date();
     const todayStr = toYMDLocal(hoy);
@@ -148,6 +149,8 @@ export default function HoyView() {
 
     const filterHoy = (t) => {
         if (t.completada) return false;
+        // Tareas pospuestas no aparecen en hoy hasta que se reanuden
+        if (t.pospuesta) return false;
         if (t.parent != null) return false;
         const fp = fechaPlanTarea(t);
         return fp === todayStr;
@@ -173,6 +176,27 @@ export default function HoyView() {
             if (pA !== pB) return pA - pB;
             return (a.carga_mental ?? 999) - (b.carga_mental ?? 999);
         });
+
+    /** Raíces pospuestas cuya fecha planificada efectiva es hoy: salieron de «Hoy» y se listan aquí. */
+    const filterPospuestasHoy = (t) => {
+        if (t.completada) return false;
+        if (t.parent != null) return false;
+        if (!t.pospuesta) return false;
+        const fp = fechaPlanTarea(t);
+        return fp === todayStr;
+    };
+
+    const tareasPospuestasHoy = tasks
+        .filter(filterPospuestasHoy)
+        .sort((a, b) => {
+            const pA = getPrioridad(a);
+            const pB = getPrioridad(b);
+            if (pA !== pB) return pA - pB;
+            return (a.carga_mental ?? 999) - (b.carga_mental ?? 999);
+        });
+
+    const showMainHoy = tareasHoy.length > 0;
+    const showPospuestas = tareasPospuestasHoy.length > 0;
 
     const cargaBloque = (
         <>
@@ -225,7 +249,7 @@ export default function HoyView() {
         </>
     );
 
-    if (tareasHoy.length === 0) {
+    if (!showMainHoy && !showPospuestas) {
         return (
             <div className="mx-auto w-full max-w-3xl space-y-6">
                 {cargaBloque}
@@ -257,47 +281,111 @@ export default function HoyView() {
     return (
         <div className="mx-auto w-full max-w-3xl space-y-6">
             {cargaBloque}
-            <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-                <div className="flex items-center justify-between gap-4 border-b border-slate-100 p-6">
-                    <div className="flex min-w-0 flex-1 items-center justify-between gap-4">
-                        <button
-                            type="button"
-                            onClick={() => setIsHoyExpanded(!isHoyExpanded)}
-                            className="-m-2 flex min-w-0 flex-1 items-center gap-4 rounded-xl p-2 text-left outline-none transition-colors hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2"
-                        >
-                            <div className="shrink-0 rounded-lg border border-emerald-200 bg-emerald-100 p-2 text-emerald-700">
-                                <ListTodo size={20} />
+
+            {!showMainHoy && showPospuestas && (
+                <div className="rounded-2xl border border-slate-200 bg-slate-50/80 px-5 py-4 text-center text-sm text-slate-600">
+                    No tienes tareas activas en la lista de hoy. Las que pospusiste para esta fecha aparecen en la
+                    sección siguiente; no cuentan para la barra de carga ni para las sugerencias de sobrecarga.
+                </div>
+            )}
+
+            {showMainHoy && (
+                <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+                    <div className="flex items-center justify-between gap-4 border-b border-slate-100 p-6">
+                        <div className="flex min-w-0 flex-1 items-center justify-between gap-4">
+                            <button
+                                type="button"
+                                onClick={() => setIsHoyExpanded(!isHoyExpanded)}
+                                className="-m-2 flex min-w-0 flex-1 items-center gap-4 rounded-xl p-2 text-left outline-none transition-colors hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2"
+                            >
+                                <div className="shrink-0 rounded-lg border border-emerald-200 bg-emerald-100 p-2 text-emerald-700">
+                                    <ListTodo size={20} />
+                                </div>
+                                <div className="min-w-0 flex-1">
+                                    <h2 className="text-xl font-bold text-slate-900">Tareas para hoy</h2>
+                                    <p className="text-sm text-slate-500">
+                                        {tareasHoy.length}{" "}
+                                        {tareasHoy.length === 1 ? "tarea pendiente" : "tareas pendientes"}
+                                    </p>
+                                </div>
+                                {isHoyExpanded ? (
+                                    <ChevronUp className="shrink-0 text-slate-400" aria-hidden />
+                                ) : (
+                                    <ChevronDown className="shrink-0 text-slate-400" aria-hidden />
+                                )}
+                            </button>
+                            <button
+                                type="button"
+                                className="shrink-0 rounded-xl border border-transparent p-2 text-slate-400 outline-none transition-colors hover:border-emerald-200 hover:bg-emerald-50 hover:text-emerald-700 focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2"
+                                title={prioridadTooltip}
+                                aria-label="Cómo priorizamos las tareas"
+                            >
+                                <Info size={20} aria-hidden />
+                            </button>
+                        </div>
+                    </div>
+
+                    {isHoyExpanded && (
+                        <div className="border-t border-slate-100 bg-slate-50/40 p-6">
+                            <TasksView tasks={tareasHoy} setTasks={setTasks} API_URL={API_URL} embedded />
+                        </div>
+                    )}
+                </div>
+            )}
+
+            {showPospuestas && (
+                <div className="overflow-hidden rounded-2xl border border-amber-200/90 bg-amber-50/30 shadow-sm">
+                    <button
+                        type="button"
+                        onClick={() => setIsPospExpanded(!isPospExpanded)}
+                        className="flex w-full items-center justify-between gap-4 border-b border-amber-100/80 bg-amber-50/50 p-6 text-left outline-none transition-colors hover:bg-amber-50/80 focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:ring-offset-2"
+                    >
+                        <div className="flex min-w-0 flex-1 items-center gap-4">
+                            <div className="shrink-0 rounded-lg border border-amber-200 bg-amber-100 p-2 text-amber-800">
+                                <PauseCircle size={20} aria-hidden />
                             </div>
                             <div className="min-w-0 flex-1">
-                                <h2 className="text-xl font-bold text-slate-900">Tareas para hoy</h2>
-                                <p className="text-sm text-slate-500">
-                                    {tareasHoy.length}{" "}
-                                    {tareasHoy.length === 1 ? "tarea pendiente" : "tareas pendientes"}
+                                <h2 className="text-xl font-bold text-slate-900">Tareas pospuestas (hoy)</h2>
+                                <p className="text-sm text-amber-900/80">
+                                    {tareasPospuestasHoy.length}{" "}
+                                    {tareasPospuestasHoy.length === 1
+                                        ? "tarea en pausa"
+                                        : "tareas en pausa"}{" "}
+                                    · no suman a la carga del día
                                 </p>
                             </div>
-                            {isHoyExpanded ? (
-                                <ChevronUp className="shrink-0 text-slate-400" aria-hidden />
-                            ) : (
-                                <ChevronDown className="shrink-0 text-slate-400" aria-hidden />
-                            )}
-                        </button>
-                        <button
-                            type="button"
-                            className="shrink-0 rounded-xl border border-transparent p-2 text-slate-400 outline-none transition-colors hover:border-emerald-200 hover:bg-emerald-50 hover:text-emerald-700 focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2"
-                            title={prioridadTooltip}
-                            aria-label="Cómo priorizamos las tareas"
-                        >
-                            <Info size={20} aria-hidden />
-                        </button>
-                    </div>
-                </div>
+                        </div>
+                        {isPospExpanded ? (
+                            <ChevronUp className="shrink-0 text-amber-700/70" aria-hidden />
+                        ) : (
+                            <ChevronDown className="shrink-0 text-amber-700/70" aria-hidden />
+                        )}
+                    </button>
 
-                {isHoyExpanded && (
-                    <div className="border-t border-slate-100 bg-slate-50/40 p-6">
-                        <TasksView tasks={tareasHoy} setTasks={setTasks} API_URL={API_URL} embedded />
-                    </div>
-                )}
-            </div>
+                    {isPospExpanded && (
+                        <div className="border-t border-amber-100 bg-white/70 p-6">
+                            <TasksView
+                                tasks={tareasPospuestasHoy}
+                                setTasks={setTasks}
+                                API_URL={API_URL}
+                                embedded
+                            />
+                        </div>
+                    )}
+                </div>
+            )}
+
+            {!showMainHoy && showPospuestas && (
+                <div className="flex justify-center pb-4">
+                    <button
+                        type="button"
+                        onClick={() => openCreateTaskModal?.()}
+                        className="inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-white px-6 py-3 text-sm font-semibold text-slate-700 shadow-sm outline-none transition-colors hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2"
+                    >
+                        Crear tarea
+                    </button>
+                </div>
+            )}
         </div>
     );
 }

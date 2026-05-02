@@ -70,6 +70,14 @@ export const eliminarTarea = (API_URL, id) => request(`${root(API_URL)}/tareas/$
 
 export const crearTarea = (API_URL, data) => request(`${root(API_URL)}/tareas/`, "POST", data);
 
+// Posponer una tarea (raíz o subtarea) con una nota opcional
+export const posponerTarea = (API_URL, id, nota) =>
+    request(`${root(API_URL)}/tareas/${id}/posponer/`, "POST", { nota: nota || "" });
+
+// Quitar el estado pospuesta de la tarea
+export const reanudarTarea = (API_URL, id) =>
+    request(`${root(API_URL)}/tareas/${id}/reanudar/`, "POST", {});
+
 /** Sprint 3 — carga diaria */
 export const obtenerCargaConfig = (API_URL) => request(`${root(API_URL)}/usuario/carga-config/`);
 
